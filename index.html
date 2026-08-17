@@ -1107,91 +1107,51 @@ function showPage(pageName) {
 
 /* ---------------- PRICE CALCULATOR ---------------- */
 
-function updateCalculator() {
+<script>
 
-    const type =
-    document.getElementById("printType").value;
+/* PAGE NAVIGATION */
 
-    const pages =
-    Number(document.getElementById("pages").value) || 1;
+function showPage(pageName) {
 
-    const copies =
-    Number(document.getElementById("copies").value) || 1;
+    const pages = document.querySelectorAll(".page");
 
-    const extra =
-    Number(document.getElementById("extra").value);
+    pages.forEach(function(page) {
+        page.classList.remove("active");
+    });
 
-    const coverage =
-    Number(document.getElementById("coverage").value);
+    document
+        .getElementById(pageName)
+        .classList.add("active");
 
-
-    const coverageWrap =
-    document.getElementById("coverageWrap");
-
-
-    let printPrice = 0;
-
-
-    if(type === "bw") {
-
-        coverageWrap.style.display = "none";
-
-        printPrice =
-        pages * copies * 2;
-
-        document.getElementById(
-        "summaryType"
-        ).textContent =
-        "Black & White Printing";
-
-    }
-
-    else {
-
-        coverageWrap.style.display = "block";
-
-        const pricePerPage =
-        35 * (coverage / 100);
-
-        printPrice =
-        pages * copies * pricePerPage;
-
-        document.getElementById(
-        "summaryType"
-        ).textContent =
-        "Colour Printing";
-
-    }
-
-
-    const finalTotal =
-    printPrice + extra;
-
-
-    document.getElementById(
-    "coverageText"
-    ).textContent =
-    coverage + "%";
-
-
-    document.getElementById(
-    "summaryPages"
-    ).textContent =
-    pages +
-    " page(s) × " +
-    copies +
-    " copy/copies";
-
-
-    document.getElementById(
-    "totalPrice"
-    ).textContent =
-    finalTotal.toFixed(2);
-
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
 }
 
 
+/* NEW CALCULATOR CODE GOES HERE */
+
+let detectedPages = 1;
+
+function handleFileUpload() {
+    // etc...
+}
+
+function changeCopies(amount) {
+    // etc...
+}
+
+function updateCalculator() {
+    // etc...
+}
+
 updateCalculator();
+
+</script>
+
+</body>
+</html>
 
 </script>
 
