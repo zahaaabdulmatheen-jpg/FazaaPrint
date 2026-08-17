@@ -88,50 +88,355 @@ nav button:hover {
     display: block;
 }
 
-/* ---------------- HOME ---------------- */
+<!-- ================= HOME ================= -->
+
+<section id="home" class="page home active">
+
+    <div class="home-left">
+
+        <span class="home-tag">
+            FAST • SIMPLE • LOCAL
+        </span>
+
+        <h1>
+            PRINTING MADE<br>
+            <span>EASIER IN MALDIVES</span>
+        </h1>
+
+        <p class="home-description">
+            Upload your documents, check your estimated price and place your
+            print order in just a few clicks.
+        </p>
+
+        <div class="home-buttons">
+
+            <button
+                class="order-main-btn"
+                onclick="showPage('order')">
+                Place Your Order →
+            </button>
+
+            <button
+                class="price-main-btn"
+                onclick="showPage('services')">
+                View Prices
+            </button>
+
+        </div>
+
+
+        <div class="features">
+
+            <span>✓ Clear pricing</span>
+
+            <span>✓ Easy ordering</span>
+
+            <span>✓ Friendly local service</span>
+
+        </div>
+
+
+        <div class="home-mini-services">
+
+            <div class="mini-service">
+                <strong>A4 Printing</strong>
+                <span>B&W & Colour</span>
+            </div>
+
+            <div class="mini-service">
+                <strong>Past Papers</strong>
+                <span>Study-ready sets</span>
+            </div>
+
+            <div class="mini-service">
+                <strong>Finishing</strong>
+                <span>Binding & Lamination</span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="home-art">
+
+        <div class="art-label">
+            <span>PRINT</span>
+            <strong>YOUR IDEAS</strong>
+        </div>
+
+        <div class="circle">
+
+            <div class="inner-circle">
+
+                <div class="paper-stack">
+
+                    <div class="paper paper1"></div>
+
+                    <div class="paper paper2"></div>
+
+                    <div class="paper paper3"></div>
+
+                    <div class="paper paper4">
+
+                        <div class="paper-content">
+                            <span>FAZAA</span>
+                            <strong>PRINT</strong>
+                            <small>Made Simple</small>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="home-price-badge">
+
+            <small>B&W PRINTING FROM</small>
+
+            <strong>MVR 2</strong>
+
+            <span>per printed side</span>
+
+        </div>
+
+    </div>
+
+</section>
+
+    /* ---------------- IMPROVED HOME ---------------- */
 
 .home {
-    display: none;
+    position: relative;
+    overflow: hidden;
 }
 
-.home.active {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 40px;
+.home::before {
+    content: "";
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: rgba(247, 174, 188, .18);
+    border-radius: 50%;
+    left: -140px;
+    bottom: -160px;
+    z-index: 0;
 }
 
-.home-left {
-    width: 55%;
+.home-left,
+.home-art {
+    position: relative;
+    z-index: 1;
+}
+
+.home-tag {
+    display: inline-block;
+    color: #c83c49;
+    background: #f9c5cf;
+    padding: 7px 12px;
+    border-radius: 30px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.3px;
+    margin-bottom: 17px;
 }
 
 .home-left h1 {
+    font-size: 43px;
+    line-height: 1.05;
+    margin-bottom: 17px;
+    color: #211419;
+}
+
+.home-left h1 span {
     color: #c83c49;
-    font-size: 28px;
-    margin-bottom: 20px;
+}
+
+.home-description {
+    max-width: 500px;
+    color: #66545b;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+.home-buttons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 30px;
 }
 
 .order-main-btn {
-    border: none;
-    background: #000;
-    color: #fff;
-    padding: 11px 20px;
-    border-radius: 9px;
-    font-size: 18px;
+    margin-bottom: 0;
+    padding: 13px 22px;
+    font-size: 16px;
+    border-radius: 11px;
+    font-weight: bold;
+}
+
+.price-main-btn {
+    border: 1px solid #d6a0aa;
+    background: white;
+    padding: 13px 22px;
+    border-radius: 11px;
+    font-weight: bold;
     cursor: pointer;
-    margin-bottom: 55px;
+}
+
+.price-main-btn:hover {
+    background: #fff4f6;
 }
 
 .features {
-    display: flex;
-    gap: 28px;
-    flex-wrap: wrap;
+    margin-bottom: 32px;
 }
 
 .features span {
-    font-size: 15px;
+    background: rgba(255,255,255,.55);
+    padding: 7px 10px;
+    border-radius: 20px;
+    font-size: 13px;
 }
 
+
+.home-mini-services {
+    display: flex;
+    gap: 12px;
+    max-width: 600px;
+}
+
+.mini-service {
+    flex: 1;
+    background: rgba(255,255,255,.82);
+    border: 1px solid rgba(213, 167, 178, .35);
+    padding: 15px;
+    border-radius: 14px;
+    box-shadow: 0 5px 18px rgba(95, 34, 47, .05);
+}
+
+.mini-service strong {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.mini-service span {
+    font-size: 11px;
+    color: #806c73;
+}
+
+
+/* ---------------- HOME ART DETAILS ---------------- */
+
+.home-art {
+    flex-direction: column;
+    position: relative;
+}
+
+.art-label {
+    position: absolute;
+    top: 20px;
+    right: 50px;
+    text-align: right;
+    z-index: 4;
+}
+
+.art-label span {
+    display: block;
+    font-size: 10px;
+    color: #bd5360;
+    letter-spacing: 2px;
+}
+
+.art-label strong {
+    font-size: 17px;
+}
+
+.paper4 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.paper-content {
+    text-align: center;
+}
+
+.paper-content span {
+    display: block;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: #d24556;
+}
+
+.paper-content strong {
+    display: block;
+    font-size: 30px;
+    letter-spacing: 2px;
+    color: #1e1418;
+}
+
+.paper-content small {
+    color: #9c868e;
+}
+
+
+.home-price-badge {
+    position: absolute;
+    bottom: 45px;
+    right: 20px;
+    background: black;
+    color: white;
+    padding: 15px 19px;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px rgba(0,0,0,.14);
+}
+
+.home-price-badge small {
+    display: block;
+    font-size: 8px;
+    letter-spacing: 1px;
+}
+
+.home-price-badge strong {
+    display: block;
+    font-size: 24px;
+    color: #f7aebc;
+}
+
+.home-price-badge span {
+    font-size: 9px;
+    color: #ddd;
+}
+
+
+@media(max-width:800px) {
+
+    .home-left h1 {
+        font-size: 34px;
+    }
+
+    .home-buttons {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .home-mini-services {
+        flex-direction: column;
+    }
+
+    .art-label,
+    .home-price-badge {
+        position: static;
+        margin: 15px auto;
+        text-align: center;
+    }
+
+}
 /* ---------------- PRINT GRAPHIC ---------------- */
 
 .home-art {
