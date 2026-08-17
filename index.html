@@ -1,132 +1,998 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="FazaaPrint printing services in the Maldives">
-  <title>FazaaPrint | Printing Made Simple</title>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>FazaaPrint</title>
+
+<style>
+
+/* ---------------- GENERAL ---------------- */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #fde8ed;
+    color: #1d1118;
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* ---------------- HEADER ---------------- */
+
+header {
+    height: 70px;
+    background: #f7aebc;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 25px;
+    border-radius: 0 0 15px 15px;
+}
+
+.logo img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+
+nav {
+    display: flex;
+    gap: 28px;
+    align-items: center;
+}
+
+nav button {
+    border: none;
+    background: transparent;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+nav button:hover {
+    opacity: .6;
+}
+
+.contact-btn {
+    background: black;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 14px;
+}
+
+/* ---------------- PAGE SECTIONS ---------------- */
+
+.page {
+    display: none;
+    min-height: calc(100vh - 140px);
+    padding: 50px 5%;
+}
+
+.page.active {
+    display: block;
+}
+
+/* ---------------- HOME ---------------- */
+
+.home {
+    display: none;
+}
+
+.home.active {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+}
+
+.home-left {
+    width: 55%;
+}
+
+.home-left h1 {
+    color: #c83c49;
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+.order-main-btn {
+    border: none;
+    background: #000;
+    color: #fff;
+    padding: 11px 20px;
+    border-radius: 9px;
+    font-size: 18px;
+    cursor: pointer;
+    margin-bottom: 55px;
+}
+
+.features {
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+
+.features span {
+    font-size: 15px;
+}
+
+/* ---------------- PRINT GRAPHIC ---------------- */
+
+.home-art {
+    width: 40%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.circle {
+    width: 360px;
+    height: 360px;
+    border: 1px solid #ff647a;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.inner-circle {
+    width: 235px;
+    height: 235px;
+    border: 1px solid #ff647a;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.paper-stack {
+    position: relative;
+    width: 155px;
+    height: 220px;
+}
+
+.paper {
+    position: absolute;
+    width: 155px;
+    height: 220px;
+    border-radius: 9px;
+}
+
+.paper1 {
+    background: #f6a3ae;
+    transform: rotate(-28deg);
+}
+
+.paper2 {
+    background: #bf3c49;
+    transform: rotate(-17deg);
+}
+
+.paper3 {
+    background: #e94352;
+    transform: rotate(-8deg);
+}
+
+.paper4 {
+    background: #fffafa;
+}
+
+/* ---------------- TITLES ---------------- */
+
+.section-title {
+    color: #c83c49;
+    margin-bottom: 8px;
+    font-size: 30px;
+}
+
+.section-subtitle {
+    margin-bottom: 35px;
+    color: #67565d;
+}
+
+/* ---------------- SERVICES ---------------- */
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.service-card {
+    background: white;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 5px 15px rgba(0,0,0,.04);
+}
+
+.service-card h3 {
+    margin-bottom: 10px;
+}
+
+.price {
+    color: #c83c49;
+    font-weight: bold;
+    font-size: 22px;
+}
+
+/* ---------------- ORDER ---------------- */
+
+.order-container {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 30px;
+}
+
+.order-form,
+.order-summary {
+    background: white;
+    border-radius: 15px;
+    padding: 28px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.two-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.coverage-wrap {
+    display: none;
+}
+
+.coverage-value {
+    color: #c83c49;
+    font-weight: bold;
+}
+
+.total {
+    font-size: 32px;
+    color: #c83c49;
+    margin: 18px 0;
+}
+
+.notice {
+    background: #fde8ed;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-top: 15px;
+}
+
+.submit-order {
+    width: 100%;
+    margin-top: 25px;
+    background: black;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* ---------------- CONTACT ---------------- */
+
+.contact-box {
+    background: white;
+    padding: 35px;
+    border-radius: 15px;
+    max-width: 650px;
+}
+
+.contact-box p {
+    margin: 15px 0;
+}
+
+.whatsapp {
+    display: inline-block;
+    margin-top: 15px;
+    background: black;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 9px;
+}
+
+/* ---------------- FOOTER ---------------- */
+
+footer {
+    height: 70px;
+    background: #0e0016;
+    color: white;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 30px;
+    font-size: 13px;
+}
+
+/* ---------------- MOBILE ---------------- */
+
+@media(max-width:800px) {
+
+    header {
+        padding: 8px 12px;
+    }
+
+    nav {
+        gap: 10px;
+    }
+
+    nav button {
+        font-size: 12px;
+    }
+
+    .home.active {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .home-left,
+    .home-art {
+        width: 100%;
+    }
+
+    .features {
+        justify-content: center;
+    }
+
+    .circle {
+        width: 280px;
+        height: 280px;
+    }
+
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .order-container {
+        grid-template-columns: 1fr;
+    }
+
+    .two-fields {
+        grid-template-columns: 1fr;
+    }
+}
+
+</style>
 </head>
 
+
 <body>
-  <header class="header">
-    <a href="index.html" class="logo">
-      <img src="logo.png" alt="FazaaPrint logo">
-    </a>
 
-    <button class="menu-button" id="menuButton" aria-label="Open menu">☰</button>
+<!-- HEADER -->
 
-    <nav id="navigation">
-      <a href="index.html" class="active">Home</a>
-      <a href="services.html">Services & Prices</a>
-      <a href="past-papers.html">Past Papers</a>
-      <a href="contact.html">Contact</a>
-      <a href="order.html" class="order-link">Order Online →</a>
+<header>
+
+    <div class="logo">
+        <img src="logo.png" alt="FazaaPrint Logo">
+    </div>
+
+    <nav>
+
+        <button onclick="showPage('home')">
+            Home
+        </button>
+
+        <button onclick="showPage('services')">
+            Services & Price
+        </button>
+
+        <button onclick="showPage('order')">
+            Order
+        </button>
+
+        <button
+        class="contact-btn"
+        onclick="showPage('contact')">
+            Contact
+        </button>
+
     </nav>
-  </header>
 
-  <main>
-    <section class="hero">
-      <div class="hero-content">
-        <span class="eyebrow">PRINTING MADE SIMPLE IN THE MALDIVES</span>
+</header>
+
+
+<main>
+
+
+<!-- ================= HOME ================= -->
+
+<section id="home" class="page home active">
+
+    <div class="home-left">
 
         <h1>
-          Your ideas.<br>
-          <em>Beautifully</em> printed.
+            PRINTING MADE EASIER IN MALDIVES
         </h1>
 
-        <p>
-          Easy document printing, study-ready past papers and professional
-          finishing—prepared with care by FazaaPrint.
-        </p>
+        <button
+        class="order-main-btn"
+        onclick="showPage('order')">
 
-        <div class="hero-buttons">
-          <a href="order.html" class="primary-button">Start a Print Order →</a>
-          <a href="services.html" class="secondary-button">View Prices</a>
+            Place Your Order
+
+        </button>
+
+        <div class="features">
+
+            <span>✓ Clear pricing</span>
+
+            <span>✓ Private file analysis</span>
+
+            <span>✓ Friendly local service</span>
+
         </div>
 
-        <div class="trust-items">
-          <span>✓ Clear pricing</span>
-          <span>✓ Private file analysis</span>
-          <span>✓ Friendly local service</span>
+    </div>
+
+
+    <div class="home-art">
+
+        <div class="circle">
+
+            <div class="inner-circle">
+
+                <div class="paper-stack">
+
+                    <div class="paper paper1"></div>
+
+                    <div class="paper paper2"></div>
+
+                    <div class="paper paper3"></div>
+
+                    <div class="paper paper4"></div>
+
+                </div>
+
+            </div>
+
         </div>
-      </div>
 
-      <div class="hero-card">
-        <div class="paper paper-back"></div>
-        <div class="paper paper-middle"></div>
+    </div>
 
-        <div class="paper paper-front">
-          <span>FAZAA</span>
-          <strong>PRINT</strong>
-          <small>Make it memorable.</small>
+</section>
 
-          <div class="color-bars">
-            <i></i>
-            <i></i>
-            <i></i>
-          </div>
-        </div>
 
-        <div class="price-label">
-          <small>B&amp;W FROM</small>
-          <strong>MVR 2</strong>
-          <span>per printed side</span>
-        </div>
-      </div>
-    </section>
 
-    <section class="choices">
-      <a href="order.html" class="choice-card">
-        <span class="number">01</span>
-        <small>UPLOAD &amp; CALCULATE</small>
-        <h2>Print a Document</h2>
-        <p>
-          Choose B&amp;W or color, upload your file and receive an instant estimate.
-        </p>
-        <b>→</b>
-      </a>
+<!-- ================= SERVICES ================= -->
 
-      <a href="past-papers.html" class="choice-card">
-        <span class="number">02</span>
-        <small>STUDY READY</small>
-        <h2>Order Past Papers</h2>
-        <p>
-          Browse English, Economics, Chemistry, Biology and custom paper packs.
-        </p>
-        <b>→</b>
-      </a>
+<section id="services" class="page">
 
-      <a href="services.html" class="choice-card">
-        <span class="number">03</span>
-        <small>FINISHING TOUCHES</small>
-        <h2>Explore Services</h2>
-        <p>
-          Binding, scanning, laminating, book covers and more with clear prices.
-        </p>
-        <b>→</b>
-      </a>
-    </section>
+<h2 class="section-title">
+Services & Prices
+</h2>
 
-    <section class="order-banner">
-      <div>
-        <span class="eyebrow">FAST AND STRAIGHTFORWARD</span>
-        <h2>Know what you need?</h2>
-        <p>Build your order on a dedicated page without distractions.</p>
-      </div>
+<p class="section-subtitle">
+Simple and transparent pricing.
+</p>
 
-      <a href="order.html" class="primary-button">
-        Open Ordering Platform →
-      </a>
-    </section>
-  </main>
 
-  <footer>
-    <img src="logo.png" alt="FazaaPrint">
-    <p>Made for bright ideas and busy students.</p>
-    <span>© 2026 FazaaPrint · Maldives</span>
-  </footer>
+<div class="services-grid">
 
-  <script src="script.js"></script>
+<div class="service-card">
+<h3>B&W A4 Printing</h3>
+<p class="price">MVR 2</p>
+<p>Per printed side</p>
+</div>
+
+
+<div class="service-card">
+<h3>Full Colour A4</h3>
+<p class="price">Up to MVR 35</p>
+<p>Based on colour coverage</p>
+</div>
+
+
+<div class="service-card">
+<h3>Binding</h3>
+<p class="price">MVR 20</p>
+</div>
+
+
+<div class="service-card">
+<h3>Scanning</h3>
+<p class="price">MVR 10</p>
+</div>
+
+
+<div class="service-card">
+<h3>Lamination</h3>
+<p class="price">MVR 15</p>
+</div>
+
+
+<div class="service-card">
+<h3>Staples</h3>
+<p class="price">MVR 4</p>
+</div>
+
+
+<div class="service-card">
+<h3>Book Cover Design & Printing</h3>
+<p class="price">MVR 45</p>
+</div>
+
+
+<div class="service-card">
+<h3>Book Cover</h3>
+<p class="price">MVR 50</p>
+</div>
+
+
+<div class="service-card">
+<h3>Cellophane</h3>
+<p class="price">MVR 100</p>
+</div>
+
+
+<div class="service-card">
+<h3>Worksheet Program</h3>
+<p class="price">MVR 150</p>
+</div>
+
+
+<div class="service-card">
+<h3>English Past Papers</h3>
+<p class="price">MVR 380</p>
+</div>
+
+
+<div class="service-card">
+<h3>Economics Past Papers</h3>
+<p class="price">MVR 150</p>
+</div>
+
+
+<div class="service-card">
+<h3>Chemistry Past Papers</h3>
+<p class="price">MVR 530</p>
+</div>
+
+
+<div class="service-card">
+<h3>Biology Past Papers</h3>
+<p class="price">MVR 600</p>
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- ================= ORDER ================= -->
+
+<section id="order" class="page">
+
+<h2 class="section-title">
+Place Your Order
+</h2>
+
+<p class="section-subtitle">
+Upload your document and calculate your estimated printing price.
+</p>
+
+
+<div class="order-container">
+
+
+<div class="order-form">
+
+
+<div class="form-group">
+
+<label>Upload Document</label>
+
+<input
+type="file"
+id="fileUpload"
+accept=".pdf,.jpg,.jpeg,.png">
+
+</div>
+
+
+<div class="two-fields">
+
+<div class="form-group">
+
+<label>Print Type</label>
+
+<select
+id="printType"
+onchange="updateCalculator()">
+
+<option value="bw">
+Black & White
+</option>
+
+<option value="color">
+Colour
+</option>
+
+</select>
+
+</div>
+
+
+<div class="form-group">
+
+<label>Printing</label>
+
+<select
+id="sides"
+onchange="updateCalculator()">
+
+<option value="1">
+Single Sided
+</option>
+
+<option value="2">
+Double Sided
+</option>
+
+</select>
+
+</div>
+
+</div>
+
+
+<div class="two-fields">
+
+
+<div class="form-group">
+
+<label>Number of Pages</label>
+
+<input
+type="number"
+id="pages"
+value="1"
+min="1"
+oninput="updateCalculator()">
+
+</div>
+
+
+<div class="form-group">
+
+<label>Copies</label>
+
+<input
+type="number"
+id="copies"
+value="1"
+min="1"
+oninput="updateCalculator()">
+
+</div>
+
+
+</div>
+
+
+
+<div
+class="form-group coverage-wrap"
+id="coverageWrap">
+
+<label>
+Estimated Colour Coverage:
+<span
+class="coverage-value"
+id="coverageText">
+100%
+</span>
+</label>
+
+<input
+type="range"
+id="coverage"
+min="1"
+max="100"
+value="100"
+oninput="updateCalculator()">
+
+</div>
+
+
+
+<div class="form-group">
+
+<label>Extra Service</label>
+
+<select
+id="extra"
+onchange="updateCalculator()">
+
+<option value="0">
+None
+</option>
+
+<option value="20">
+Binding — MVR 20
+</option>
+
+<option value="15">
+Lamination — MVR 15
+</option>
+
+<option value="10">
+Scanning — MVR 10
+</option>
+
+<option value="4">
+Staples — MVR 4
+</option>
+
+</select>
+
+</div>
+
+
+</div>
+
+
+
+<div class="order-summary">
+
+<h3>Order Estimate</h3>
+
+<p id="summaryType">
+Black & White Printing
+</p>
+
+<p id="summaryPages">
+1 page × 1 copy
+</p>
+
+<div class="total">
+
+MVR
+<span id="totalPrice">
+2.00
+</span>
+
+</div>
+
+
+<p class="notice">
+
+Colour printing prices are estimates.
+Final prices may vary depending on the actual
+amount of ink used on the uploaded document.
+
+</p>
+
+
+<button class="submit-order">
+
+Continue Order →
+
+</button>
+
+
+</div>
+
+
+</div>
+
+</section>
+
+
+
+<!-- ================= CONTACT ================= -->
+
+<section id="contact" class="page">
+
+<h2 class="section-title">
+Contact FazaaPrint
+</h2>
+
+<p class="section-subtitle">
+Need help with your order? We're happy to help.
+</p>
+
+
+<div class="contact-box">
+
+<h3>FazaaPrint Maldives</h3>
+
+<p>
+📍 Maldives
+</p>
+
+<p>
+💬 WhatsApp us for enquiries and orders.
+</p>
+
+<p>
+Send your documents, printing requirements
+or questions and we'll get back to you.
+</p>
+
+
+<a
+href="#"
+class="whatsapp">
+
+Contact on WhatsApp
+
+</a>
+
+
+</div>
+
+</section>
+
+
+</main>
+
+
+
+<footer>
+
+© 2026 FazaaPrint · Maldives
+
+</footer>
+
+
+
+<script>
+
+/* ---------------- PAGE NAVIGATION ---------------- */
+
+function showPage(pageName) {
+
+    const pages =
+    document.querySelectorAll(".page");
+
+    pages.forEach(function(page) {
+
+        page.classList.remove("active");
+
+    });
+
+
+    document
+    .getElementById(pageName)
+    .classList.add("active");
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+}
+
+
+
+/* ---------------- PRICE CALCULATOR ---------------- */
+
+function updateCalculator() {
+
+    const type =
+    document.getElementById("printType").value;
+
+    const pages =
+    Number(document.getElementById("pages").value) || 1;
+
+    const copies =
+    Number(document.getElementById("copies").value) || 1;
+
+    const extra =
+    Number(document.getElementById("extra").value);
+
+    const coverage =
+    Number(document.getElementById("coverage").value);
+
+
+    const coverageWrap =
+    document.getElementById("coverageWrap");
+
+
+    let printPrice = 0;
+
+
+    if(type === "bw") {
+
+        coverageWrap.style.display = "none";
+
+        printPrice =
+        pages * copies * 2;
+
+        document.getElementById(
+        "summaryType"
+        ).textContent =
+        "Black & White Printing";
+
+    }
+
+    else {
+
+        coverageWrap.style.display = "block";
+
+        const pricePerPage =
+        35 * (coverage / 100);
+
+        printPrice =
+        pages * copies * pricePerPage;
+
+        document.getElementById(
+        "summaryType"
+        ).textContent =
+        "Colour Printing";
+
+    }
+
+
+    const finalTotal =
+    printPrice + extra;
+
+
+    document.getElementById(
+    "coverageText"
+    ).textContent =
+    coverage + "%";
+
+
+    document.getElementById(
+    "summaryPages"
+    ).textContent =
+    pages +
+    " page(s) × " +
+    copies +
+    " copy/copies";
+
+
+    document.getElementById(
+    "totalPrice"
+    ).textContent =
+    finalTotal.toFixed(2);
+
+}
+
+
+updateCalculator();
+
+</script>
+
+
 </body>
 </html>
