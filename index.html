@@ -231,80 +231,282 @@ nav button:hover {
     font-size: 22px;
 }
 
-/* ---------------- ORDER ---------------- */
+<!-- ================= ORDER ================= -->
 
-.order-container {
-    display: grid;
-    grid-template-columns: 1.4fr 1fr;
-    gap: 30px;
-}
+<section id="order" class="page">
 
-.order-form,
-.order-summary {
-    background: white;
-    border-radius: 15px;
-    padding: 28px;
-}
+    <div class="order-heading">
+        <span class="order-tag">QUICK PRINT ORDER</span>
+        <h2>Place Your Order</h2>
+        <p>Upload your document, choose your printing preferences and get an instant estimate.</p>
+    </div>
 
-.form-group {
-    margin-bottom: 20px;
-}
+    <div class="order-container">
 
-.form-group label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 8px;
-}
+        <!-- LEFT SIDE -->
 
-.form-group input,
-.form-group select {
-    width: 100%;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 12px;
-}
+        <div class="order-form">
 
-.two-fields {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-}
+            <div class="upload-box">
 
-.coverage-wrap {
-    display: none;
-}
+                <div class="upload-icon">↑</div>
 
-.coverage-value {
-    color: #c83c49;
-    font-weight: bold;
-}
+                <h3>Upload your document</h3>
 
-.total {
-    font-size: 32px;
-    color: #c83c49;
-    margin: 18px 0;
-}
+                <p>PDF, JPG or PNG</p>
 
-.notice {
-    background: #fde8ed;
-    padding: 12px;
-    border-radius: 8px;
-    font-size: 13px;
-    margin-top: 15px;
-}
+                <input
+                    type="file"
+                    id="fileUpload"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onchange="handleFileUpload()"
+                >
 
-.submit-order {
-    width: 100%;
-    margin-top: 25px;
-    background: black;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 14px;
-    cursor: pointer;
-    font-weight: bold;
-}
+                <label for="fileUpload" class="upload-button">
+                    Choose File
+                </label>
 
+                <span id="fileName" class="file-name">
+                    No file selected
+                </span>
+
+            </div>
+
+
+            <div class="order-options-title">
+                Printing Options
+            </div>
+
+
+            <div class="two-fields">
+
+                <div class="form-group">
+                    <label>Print Type</label>
+
+                    <select
+                        id="printType"
+                        onchange="updateCalculator()">
+
+                        <option value="bw">
+                            Black & White
+                        </option>
+
+                        <option value="color">
+                            Colour
+                        </option>
+
+                    </select>
+                </div>
+
+
+                <div class="form-group">
+                    <label>Printing</label>
+
+                    <select
+                        id="sides"
+                        onchange="updateCalculator()">
+
+                        <option value="1">
+                            Single Sided
+                        </option>
+
+                        <option value="2">
+                            Double Sided
+                        </option>
+
+                    </select>
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Copies</label>
+
+                <div class="copy-control">
+
+                    <button
+                        type="button"
+                        onclick="changeCopies(-1)">
+                        −
+                    </button>
+
+                    <input
+                        type="number"
+                        id="copies"
+                        value="1"
+                        min="1"
+                        oninput="updateCalculator()">
+
+                    <button
+                        type="button"
+                        onclick="changeCopies(1)">
+                        +
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="form-group coverage-wrap"
+                id="coverageWrap">
+
+                <div class="coverage-heading">
+
+                    <label>
+                        Estimated Colour Coverage
+                    </label>
+
+                    <strong id="coverageText">
+                        100%
+                    </strong>
+
+                </div>
+
+                <input
+                    type="range"
+                    id="coverage"
+                    min="1"
+                    max="100"
+                    value="100"
+                    oninput="updateCalculator()">
+
+                <small>
+                    This is used to estimate colour printing cost.
+                </small>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Finishing Service</label>
+
+                <select
+                    id="extra"
+                    onchange="updateCalculator()">
+
+                    <option value="0">
+                        No extra service
+                    </option>
+
+                    <option value="20">
+                        Binding — MVR 20
+                    </option>
+
+                    <option value="15">
+                        Lamination — MVR 15
+                    </option>
+
+                    <option value="10">
+                        Scanning — MVR 10
+                    </option>
+
+                    <option value="4">
+                        Staples — MVR 4
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <!-- RIGHT SIDE -->
+
+        <div class="order-summary">
+
+            <span class="summary-label">
+                YOUR ESTIMATE
+            </span>
+
+            <h3>Order Summary</h3>
+
+            <div class="summary-row">
+
+                <span>Printing</span>
+
+                <strong id="summaryType">
+                    Black & White
+                </strong>
+
+            </div>
+
+
+            <div class="summary-row">
+
+                <span>Copies</span>
+
+                <strong id="summaryCopies">
+                    1
+                </strong>
+
+            </div>
+
+
+            <div class="summary-row">
+
+                <span>Printing Style</span>
+
+                <strong id="summarySides">
+                    Single Sided
+                </strong>
+
+            </div>
+
+
+            <div class="summary-divider"></div>
+
+
+            <span class="estimated-text">
+                Estimated Total
+            </span>
+
+
+            <div class="total">
+
+                <small>MVR</small>
+
+                <span id="totalPrice">
+                    2.00
+                </span>
+
+            </div>
+
+
+            <div class="notice">
+
+                <strong>About colour pricing</strong>
+
+                <p>
+                    Colour prices are estimated using colour coverage.
+                    Final price may vary slightly after the document is reviewed.
+                </p>
+
+            </div>
+
+
+            <button class="submit-order">
+
+                Continue Order
+                <span>→</span>
+
+            </button>
+
+
+            <p class="secure-note">
+                ✓ Your uploaded file is used only to prepare your order.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
 /* ---------------- CONTACT ---------------- */
 
 .contact-box {
