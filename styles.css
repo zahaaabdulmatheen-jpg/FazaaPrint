@@ -706,3 +706,7 @@ footer {
   transform: translateX(-3px);
   box-shadow: 0 9px 22px rgba(239, 71, 120, 0.22);
 }
+
+.dropzone {
+  cursor: pointer;
+}
