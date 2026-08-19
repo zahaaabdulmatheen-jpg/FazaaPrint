@@ -650,6 +650,369 @@ function updateOrderSummary() {
   getElement("total").textContent =
     getOrderTotal();
 
+  function getPaperDescription(file) {
+  if (file.size === "A4") {
+    return file.paper === "sticker"
+      ? "A4 Sticker Paper"
+      : "A4 Normal Paper";
+  }
+
+  return `${file.size} Normal Paper`;
+}
+
+function createInvoice() {
+  if (selectedFiles.length === 0) {
+    return;
+  }
+
+  const invoiceNumber =
+    "FP-" +
+    Date.now()
+      .toString()
+      .slice(-8);
+
+  const invoiceDate =
+    new Date().toLocaleDateString(
+      "en-GB",
+      {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      }
+    );
+
+  const invoiceRows = selectedFiles
+    .map((file, index) => {
+      return `
+        <tr>
+          <td>
+            ${index + 1}
+          </td>
+
+          <td>
+            ${makeTextSafe(file.name)}
+          </td>
+
+          <td>
+            ${getPaperDescription(file)}
+          </td>
+
+          <td>
+            ${
+              printMode === "bw"
+                ? "Black & white"
+                : "Colour"
+            }
+          </td>
+
+          <td>
+            ${file.pages}
+          </td>
+
+          <td>
+            ${file.copies}
+          </td>
+
+          <td class="amount">
+            MVR ${getFilePrice(file)}
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  const invoiceWindow = window.open(
+    "",
+    "_blank",
+    "width=900,height=750"
+  );
+
+  if (!invoiceWindow) {
+    alert(
+      "Please allow pop-ups to view your invoice."
+    );
+
+    return;
+  }
+
+  invoiceWindow.document.write(`
+    <!doctype html>
+
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+      >
+
+      <title>
+        FazaaPrint Invoice ${invoiceNumber}
+      </title>
+
+      <style>
+        * {
+          box-sizing: border-box;
+        }
+
+        body {
+          margin: 0;
+          padding: 40px;
+          background: #f8f4f5;
+          color: #2d1720;
+          font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .invoice {
+          max-width: 900px;
+          margin: auto;
+          padding: 42px;
+          background: white;
+          border-radius: 18px;
+          box-shadow:
+            0 15px 45px rgba(45, 23, 32, 0.12);
+        }
+
+        .invoice-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 30px;
+          padding-bottom: 25px;
+          border-bottom: 2px solid #f4dbe2;
+        }
+
+        .brand {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-size: 24px;
+          font-weight: 900;
+        }
+
+        .logo {
+          display: grid;
+          place-items: center;
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          background: #ef4778;
+          color: white;
+          font-size: 25px;
+          font-weight: 900;
+        }
+
+        .invoice-title {
+          text-align: right;
+        }
+
+        .invoice-title h1 {
+          margin: 0 0 7px;
+          color: #ef4778;
+          font-size: 28px;
+        }
+
+        .invoice-title p {
+          margin: 3px 0;
+          color: #7d6c72;
+          font-size: 13px;
+        }
+
+        .status {
+          display: inline-block;
+          margin-top: 14px;
+          padding: 7px 12px;
+          border-radius: 20px;
+          background: #fff1c9;
+          color: #77580e;
+          font-size: 12px;
+          font-weight: 900;
+        }
+
+        .invoice-information {
+          margin: 28px 0;
+          color: #7d6c72;
+          line-height: 1.7;
+        }
+
+        .invoice-information b {
+          color: #2d1720;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 25px;
+          font-size: 13px;
+        }
+
+        th {
+          padding: 12px 9px;
+          background: #fff4f7;
+          color: #7d6c72;
+          text-align: left;
+        }
+
+        td {
+          padding: 14px 9px;
+          border-bottom: 1px solid #eee2e5;
+          vertical-align: top;
+        }
+
+        .amount {
+          white-space: nowrap;
+          font-weight: 800;
+        }
+
+        .invoice-total {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 30px;
+          margin-top: 30px;
+          padding-top: 22px;
+          border-top: 2px solid #f4dbe2;
+        }
+
+        .invoice-total span {
+          font-size: 16px;
+          font-weight: 800;
+        }
+
+        .invoice-total strong {
+          color: #ef4778;
+          font-size: 30px;
+        }
+
+        .invoice-note {
+          margin-top: 35px;
+          padding: 16px;
+          border-radius: 10px;
+          background: #fff8e6;
+          color: #725a20;
+          font-size: 12px;
+          line-height: 1.6;
+        }
+
+        .actions {
+          display: flex;
+          justify-content: center;
+          margin-top: 28px;
+        }
+
+        .actions button {
+          border: 0;
+          border-radius: 11px;
+          padding: 13px 22px;
+          background: #ef4778;
+          color: white;
+          font-size: 14px;
+          font-weight: 900;
+          cursor: pointer;
+        }
+
+        @media print {
+          body {
+            padding: 0;
+            background: white;
+          }
+
+          .invoice {
+            box-shadow: none;
+          }
+
+          .actions {
+            display: none;
+          }
+        }
+      </style>
+    </head>
+
+    <body>
+      <main class="invoice">
+        <header class="invoice-header">
+          <div class="brand">
+            <span class="logo">F</span>
+            <span>FazaaPrint</span>
+          </div>
+
+          <div class="invoice-title">
+            <h1>ORDER INVOICE</h1>
+
+            <p>
+              Invoice: ${invoiceNumber}
+            </p>
+
+            <p>
+              Date: ${invoiceDate}
+            </p>
+
+            <span class="status">
+              AMOUNT DUE
+            </span>
+          </div>
+        </header>
+
+        <section class="invoice-information">
+          <b>Printing order</b><br>
+
+          ${selectedFiles.length}
+          ${
+            selectedFiles.length === 1
+              ? "file"
+              : "files"
+          }
+
+          · ${getTotalPrintedPages()}
+          printed pages
+        </section>
+
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>File</th>
+              <th>Paper</th>
+              <th>Printing</th>
+              <th>Pages</th>
+              <th>Copies</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${invoiceRows}
+          </tbody>
+        </table>
+
+        <div class="invoice-total">
+          <span>Total amount due</span>
+
+          <strong>
+            MVR ${getOrderTotal()}
+          </strong>
+        </div>
+
+        <p class="invoice-note">
+          This invoice shows the amount due before
+          payment. A paid invoice will be issued after
+          payment is successfully confirmed.
+        </p>
+
+        <div class="actions">
+          <button onclick="window.print()">
+            Print or save invoice
+          </button>
+        </div>
+      </main>
+    </body>
+    </html>
+  `);
+
+  invoiceWindow.document.close();
+}
+  
   getElement("payButton").disabled =
     selectedFiles.length === 0;
   
