@@ -1,296 +1,473 @@
-import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs";
-
 pdfjsLib.GlobalWorkerOptions.workerSrc =
-  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs";
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-const $ = (id) => document.getElementById(id);
+const getElement = (id) => document.getElementById(id);
 
-let mode = "bw";
-let fileInfo = null;
-let copies = 1;
+let printMode = "bw";
+let uploadedFileInformation = null;
+let numberOfCopies = 1;
 
-function setMode(nextMode) {
-  mode = nextMode;
+function selectPrintMode(selectedMode) {
+  printMode = selectedMode;
 
-  $("bwMode").classList.toggle("active", mode === "bw");
-  $("colourMode").classList.toggle("active", mode === "colour");
+  getElement("bwMode").classList.toggle(
+    "active",
+    printMode === "bw"
+  );
 
-  $("summaryMode").textContent =
-    mode === "bw" ? "Black & white" : "Colour";
+  getElement("colourMode").classList.toggle(
+    "active",
+    printMode === "colour"
+  );
 
-  $("coverageRow").classList.toggle("hidden", mode !== "colour");
-  $("colourNote").classList.toggle("hidden", mode !== "colour");
+  getElement("summaryMode").textContent =
+    printMode === "bw"
+      ? "Black & white"
+      : "Colour";
 
-  updateTotal();
+  getElement("coverageRow").classList.toggle(
+    "hidden",
+    printMode !== "colour"
+  );
+
+  getElement("colourNote").classList.toggle(
+    "hidden",
+    printMode !== "colour"
+  );
+
+  calculateTotal();
 }
 
-function updateTotal() {
-  let price = 0;
+function calculateTotal() {
+  let priceForOneCopy = 0;
 
-  if (fileInfo) {
-    if (mode === "bw") {
-      price = fileInfo.pages * 2;
+  if (uploadedFileInformation) {
+    if (printMode === "bw") {
+      priceForOneCopy =
+        uploadedFileInformation.pages * 2;
     } else {
-      price = fileInfo.pages * fileInfo.coverage * 35;
+      priceForOneCopy =
+        uploadedFileInformation.pages *
+        uploadedFileInformation.coverage *
+        35;
     }
   }
 
-  const finalTotal = price * copies;
+  const finalPrice =
+    priceForOneCopy * numberOfCopies;
 
-  $("total").textContent = finalTotal.toFixed(2);
-  $("summaryCopies").textContent = copies;
+  getElement("total").textContent =
+    finalPrice.toFixed(2);
+
+  getElement("summaryCopies").textContent =
+    numberOfCopies;
 }
 
-async function coverageFromCanvas(canvas) {
+function calculateCanvasCoverage(canvas) {
   const context = canvas.getContext("2d", {
     willReadFrequently: true
   });
 
-  const pixels = context.getImageData(
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  ).data;
-
-  let inkAmount = 0;
-
-  for (let index = 0; index < pixels.length; index += 4) {
-    const red = pixels[index];
-    const green = pixels[index + 1];
-    const blue = pixels[index + 2];
-
-    inkAmount += 1 - (red + green + blue) / 765;
+  if (!context) {
+    return 0;
   }
 
-  const coverage = inkAmount / (pixels.length / 4);
-
-  return Math.max(0, Math.min(1, coverage));
-}
-
-async function analyseImage(file) {
-  const bitmap = await createImageBitmap(file);
-
-  const scale = Math.min(
-    1,
-    720 / Math.max(bitmap.width, bitmap.height)
-  );
-
-  const canvas = document.createElement("canvas");
-
-  canvas.width = Math.max(
-    1,
-    Math.round(bitmap.width * scale)
-  );
-
-  canvas.height = Math.max(
-    1,
-    Math.round(bitmap.height * scale)
-  );
-
-  const context = canvas.getContext("2d");
-
-  context.drawImage(
-    bitmap,
+  const imageData = context.getImageData(
     0,
     0,
     canvas.width,
     canvas.height
   );
 
-  const coverage = await coverageFromCanvas(canvas);
+  const pixels = imageData.data;
 
-  bitmap.close();
+  let totalInk = 0;
+  let pixelCount = 0;
 
-  return {
-    pages: 1,
-    coverage: coverage
-  };
+  for (
+    let pixel = 0;
+    pixel < pixels.length;
+    pixel += 4
+  ) {
+    const red = pixels[pixel];
+    const green = pixels[pixel + 1];
+    const blue = pixels[pixel + 2];
+    const transparency = pixels[pixel + 3] / 255;
+
+    const brightness =
+      (red + green + blue) / 3;
+
+    const inkAmount =
+      (1 - brightness / 255) * transparency;
+
+    totalInk += inkAmount;
+    pixelCount++;
+  }
+
+  if (pixelCount === 0) {
+    return 0;
+  }
+
+  return Math.max(
+    0,
+    Math.min(1, totalInk / pixelCount)
+  );
 }
 
-async function analysePdf(file) {
-  const pdf = await pdfjsLib.getDocument({
-    data: await file.arrayBuffer()
-  }).promise;
+function loadImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const temporaryURL = URL.createObjectURL(file);
 
-  let totalCoverage = 0;
+    image.onload = function () {
+      const maximumSize = 720;
+
+      const scale = Math.min(
+        1,
+        maximumSize /
+          Math.max(image.width, image.height)
+      );
+
+      const canvas =
+        document.createElement("canvas");
+
+      canvas.width = Math.max(
+        1,
+        Math.round(image.width * scale)
+      );
+
+      canvas.height = Math.max(
+        1,
+        Math.round(image.height * scale)
+      );
+
+      const context = canvas.getContext("2d");
+
+      context.fillStyle = "white";
+
+      context.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+
+      context.drawImage(
+        image,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+
+      const coverage =
+        calculateCanvasCoverage(canvas);
+
+      URL.revokeObjectURL(temporaryURL);
+
+      resolve({
+        pages: 1,
+        coverage: coverage
+      });
+    };
+
+    image.onerror = function () {
+      URL.revokeObjectURL(temporaryURL);
+      reject(new Error("Image could not be read."));
+    };
+
+    image.src = temporaryURL;
+  });
+}
+
+async function loadPdfFile(file) {
+  const fileData = await file.arrayBuffer();
+
+  const loadingTask = pdfjsLib.getDocument({
+    data: fileData
+  });
+
+  const pdfDocument = await loadingTask.promise;
+
+  let combinedCoverage = 0;
 
   for (
     let pageNumber = 1;
-    pageNumber <= pdf.numPages;
+    pageNumber <= pdfDocument.numPages;
     pageNumber++
   ) {
-    const page = await pdf.getPage(pageNumber);
+    const page =
+      await pdfDocument.getPage(pageNumber);
 
     const viewport = page.getViewport({
-      scale: 0.45
+      scale: 0.5
     });
 
-    const canvas = document.createElement("canvas");
+    const canvas =
+      document.createElement("canvas");
+
+    const context = canvas.getContext("2d");
 
     canvas.width = Math.max(
       1,
-      Math.round(viewport.width)
+      Math.floor(viewport.width)
     );
 
     canvas.height = Math.max(
       1,
-      Math.round(viewport.height)
+      Math.floor(viewport.height)
     );
 
-    const context = canvas.getContext("2d");
+    context.fillStyle = "white";
+
+    context.fillRect(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
 
     await page.render({
       canvasContext: context,
       viewport: viewport
     }).promise;
 
-    totalCoverage += await coverageFromCanvas(canvas);
+    combinedCoverage +=
+      calculateCanvasCoverage(canvas);
   }
 
   return {
-    pages: pdf.numPages,
+    pages: pdfDocument.numPages,
+
     coverage:
-      pdf.numPages > 0
-        ? totalCoverage / pdf.numPages
+      pdfDocument.numPages > 0
+        ? combinedCoverage /
+          pdfDocument.numPages
         : 0
   };
 }
 
-async function acceptFile(file) {
+async function processUploadedFile(file) {
   if (!file) {
     return;
   }
 
+  const fileName = file.name.toLowerCase();
+
   const isPdf =
     file.type === "application/pdf" ||
-    file.name.toLowerCase().endsWith(".pdf");
+    fileName.endsWith(".pdf");
 
-  const isImage = file.type.startsWith("image/");
+  const isImage =
+    file.type.startsWith("image/") ||
+    fileName.endsWith(".jpg") ||
+    fileName.endsWith(".jpeg") ||
+    fileName.endsWith(".png");
 
   if (!isPdf && !isImage) {
-    showError("Please upload a PDF, JPG or PNG file.");
+    showError(
+      "Please upload a PDF, JPG or PNG file."
+    );
+
     return;
   }
 
   showError("");
 
-  fileInfo = null;
-  $("payButton").disabled = true;
+  uploadedFileInformation = null;
 
-  $("dropzone").innerHTML = `
+  getElement("payButton").disabled = true;
+
+  getElement("dropzone").classList.remove(
+    "has-file"
+  );
+
+  getElement("dropzone").innerHTML = `
     <span class="spinner"></span>
     <b>Reading your file…</b>
-    <small>Calculating pages and colour use</small>
+    <small>
+      Calculating pages and colour use
+    </small>
   `;
 
   try {
     if (isPdf) {
-      fileInfo = await analysePdf(file);
+      uploadedFileInformation =
+        await loadPdfFile(file);
     } else {
-      fileInfo = await analyseImage(file);
+      uploadedFileInformation =
+        await loadImageFile(file);
     }
 
-    $("dropzone").classList.add("has-file");
+    getElement("dropzone").classList.add(
+      "has-file"
+    );
 
-    $("dropzone").innerHTML = `
+    getElement("dropzone").innerHTML = `
       <span class="file-check">✓</span>
-      <b>${safeText(file.name)}</b>
+      <b>${makeTextSafe(file.name)}</b>
       <small>
-        ${fileInfo.pages}
-        ${fileInfo.pages === 1 ? "page" : "pages"}
+        ${uploadedFileInformation.pages}
+        ${
+          uploadedFileInformation.pages === 1
+            ? "page"
+            : "pages"
+        }
         detected · Click to replace
       </small>
     `;
 
-    $("summaryPages").textContent = fileInfo.pages;
+    getElement("summaryPages").textContent =
+      uploadedFileInformation.pages;
 
-    $("summaryCoverage").textContent =
-      `${Math.round(fileInfo.coverage * 100)}%`;
+    getElement(
+      "summaryCoverage"
+    ).textContent =
+      Math.round(
+        uploadedFileInformation.coverage * 100
+      ) + "%";
 
-    $("payButton").disabled = false;
+    getElement("payButton").disabled = false;
 
-    updateTotal();
+    calculateTotal();
   } catch (error) {
+    console.error(error);
+
     showError(
-      "We could not read this file. Please try another PDF or image."
+      "The file could not be read. Please try another PDF, JPG or PNG."
     );
 
-    resetUpload();
+    resetUploadArea();
   }
 }
 
-function safeText(text) {
-  const element = document.createElement("div");
+function makeTextSafe(text) {
+  const temporaryElement =
+    document.createElement("div");
 
-  element.textContent = text;
+  temporaryElement.textContent = text;
 
-  return element.innerHTML;
+  return temporaryElement.innerHTML;
 }
 
 function showError(message) {
-  $("error").textContent = message;
+  const errorMessage = getElement("error");
 
-  $("error").classList.toggle(
+  errorMessage.textContent = message;
+
+  errorMessage.classList.toggle(
     "hidden",
-    !message
+    message.length === 0
   );
 }
 
-function resetUpload() {
-  $("dropzone").classList.remove("has-file");
+function resetUploadArea() {
+  uploadedFileInformation = null;
 
-  $("dropzone").innerHTML = `
+  getElement("summaryPages").textContent = "—";
+  getElement("summaryCoverage").textContent = "—";
+  getElement("payButton").disabled = true;
+
+  getElement("dropzone").classList.remove(
+    "has-file"
+  );
+
+  getElement("dropzone").innerHTML = `
     <span class="upload-icon">↑</span>
     <b>Choose a file</b>
     <small>or drag and drop it here</small>
   `;
+
+  calculateTotal();
 }
 
-$("bwMode").addEventListener("click", () => {
-  setMode("bw");
-});
+getElement("bwMode").addEventListener(
+  "click",
+  function () {
+    selectPrintMode("bw");
+  }
+);
 
-$("colourMode").addEventListener("click", () => {
-  setMode("colour");
-});
+getElement("colourMode").addEventListener(
+  "click",
+  function () {
+    selectPrintMode("colour");
+  }
+);
 
-$("dropzone").addEventListener("click", () => {
-  $("fileInput").click();
-});
+getElement("dropzone").addEventListener(
+  "click",
+  function () {
+    getElement("fileInput").click();
+  }
+);
 
-$("fileInput").addEventListener("change", (event) => {
-  acceptFile(event.target.files[0]);
-});
+getElement("fileInput").addEventListener(
+  "change",
+  function (event) {
+    processUploadedFile(
+      event.target.files[0]
+    );
 
-$("dropzone").addEventListener("dragover", (event) => {
-  event.preventDefault();
-});
+    event.target.value = "";
+  }
+);
 
-$("dropzone").addEventListener("drop", (event) => {
-  event.preventDefault();
+getElement("dropzone").addEventListener(
+  "dragover",
+  function (event) {
+    event.preventDefault();
+  }
+);
 
-  acceptFile(event.dataTransfer.files[0]);
-});
+getElement("dropzone").addEventListener(
+  "drop",
+  function (event) {
+    event.preventDefault();
 
-$("minus").addEventListener("click", () => {
-  copies = Math.max(1, copies - 1);
+    processUploadedFile(
+      event.dataTransfer.files[0]
+    );
+  }
+);
 
-  $("copies").textContent = copies;
+getElement("minus").addEventListener(
+  "click",
+  function () {
+    numberOfCopies = Math.max(
+      1,
+      numberOfCopies - 1
+    );
 
-  updateTotal();
-});
+    getElement("copies").textContent =
+      numberOfCopies;
 
-$("plus").addEventListener("click", () => {
-  copies = Math.min(99, copies + 1);
+    calculateTotal();
+  }
+);
 
-  $("copies").textContent = copies;
+getElement("plus").addEventListener(
+  "click",
+  function () {
+    numberOfCopies = Math.min(
+      99,
+      numberOfCopies + 1
+    );
 
-  updateTotal();
-});
+    getElement("copies").textContent =
+      numberOfCopies;
 
-$("payButton").addEventListener("click", () => {
-  alert(
-    "BML payment will work after your FazaaPrint merchant gateway details are connected."
-  );
-});
+    calculateTotal();
+  }
+);
+
+getElement("payButton").addEventListener(
+  "click",
+  function () {
+    alert(
+      "BML payment will work after the FazaaPrint merchant gateway is connected."
+    );
+  }
+);
+
+selectPrintMode("bw");
