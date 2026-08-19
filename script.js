@@ -1,442 +1,296 @@
-document.addEventListener("DOMContentLoaded", () => {
-  setupMobileMenu();
-  setupOrderCalculator();
-  setupFileAnalyzer();
-});
+import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs";
 
-/* Mobile navigation */
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs";
 
-function setupMobileMenu() {
-  const menuButton = document.getElementById("menuButton");
-  const navigation = document.getElementById("navigation");
+const $ = (id) => document.getElementById(id);
 
-  if (!menuButton || !navigation) return;
+let mode = "bw";
+let fileInfo = null;
+let copies = 1;
 
-  menuButton.addEventListener("click", () => {
-    navigation.classList.toggle("open");
+function setMode(nextMode) {
+  mode = nextMode;
 
-    menuButton.textContent = navigation.classList.contains("open")
-      ? "✕"
-      : "☰";
-  });
+  $("bwMode").classList.toggle("active", mode === "bw");
+  $("colourMode").classList.toggle("active", mode === "colour");
 
-  navigation.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", () => {
-      navigation.classList.remove("open");
-      menuButton.textContent = "☰";
-    });
-  });
+  $("summaryMode").textContent =
+    mode === "bw" ? "Black & white" : "Colour";
+
+  $("coverageRow").classList.toggle("hidden", mode !== "colour");
+  $("colourNote").classList.toggle("hidden", mode !== "colour");
+
+  updateTotal();
 }
 
-/* Order calculator */
+function updateTotal() {
+  let price = 0;
 
-function setupOrderCalculator() {
-  const orderForm = document.getElementById("orderForm");
-
-  if (!orderForm) return;
-
-  const printMode = document.getElementById("printMode");
-  const sides = document.getElementById("sides");
-  const pageCount = document.getElementById("pageCount");
-  const copies = document.getElementById("copies");
-
-  const binding = document.getElementById("binding");
-  const laminate = document.getElementById("laminate");
-  const scanning = document.getElementById("scanning");
-  const staples = document.getElementById("staples");
-
-  const coverageInput = document.getElementById("coverage");
-  const coverageContainer = document.getElementById("coverageContainer");
-  const coverageValue = document.getElementById("coverageValue");
-
-  const printingPrice = document.getElementById("printingPrice");
-  const extrasPrice = document.getElementById("extrasPrice");
-  const totalPrice = document.getElementById("totalPrice");
-  const calculationFormula = document.getElementById("calculationFormula");
-
-  const controls = [
-    printMode,
-    sides,
-    pageCount,
-    copies,
-    binding,
-    laminate,
-    scanning,
-    staples,
-    coverageInput
-  ];
-
-  controls.forEach((control) => {
-    if (!control) return;
-
-    control.addEventListener("input", calculateOrder);
-    control.addEventListener("change", calculateOrder);
-  });
-
-  function calculateOrder() {
-    const mode = printMode.value;
-    const selectedSides = Math.max(1, Number(sides.value));
-    const pages = Math.max(1, Number(pageCount.value));
-    const copyAmount = Math.max(1, Number(copies.value));
-    const coverage = Math.max(
-      1,
-      Math.min(100, Number(coverageInput.value))
-    );
-
-    coverageValue.textContent = `${coverage}%`;
-
-    if (mode === "color") {
-      coverageContainer.hidden = false;
-    } else {
-      coverageContainer.hidden = true;
-    }
-
-    let printTotal = 0;
-    let formula = "";
-
+  if (fileInfo) {
     if (mode === "bw") {
-      printTotal = pages * selectedSides * copyAmount * 2;
-
-      formula =
-        `${pages} page(s) × ${selectedSides} printed side(s) × ` +
-        `${copyAmount} copy/copies × MVR 2`;
+      price = fileInfo.pages * 2;
     } else {
-      printTotal =
-        pages *
-        selectedSides *
-        copyAmount *
-        35 *
-        (coverage / 100);
-
-      formula =
-        `${pages} page(s) × ${selectedSides} printed side(s) × ` +
-        `${copyAmount} copy/copies × MVR 35 × ${coverage}% coverage`;
+      price = fileInfo.pages * fileInfo.coverage * 35;
     }
-
-    let extrasTotal = 0;
-
-    if (binding.checked) {
-      extrasTotal += 20;
-    }
-
-    if (laminate.checked) {
-      extrasTotal += pages * copyAmount * 15;
-    }
-
-    if (scanning.checked) {
-      extrasTotal += 10;
-    }
-
-    if (staples.checked) {
-      extrasTotal += 4;
-    }
-
-    const finalTotal = printTotal + extrasTotal;
-
-    printingPrice.textContent = formatMoney(printTotal);
-    extrasPrice.textContent = formatMoney(extrasTotal);
-    totalPrice.textContent = formatMoney(finalTotal);
-    calculationFormula.textContent = formula;
   }
 
-  calculateOrder();
+  const finalTotal = price * copies;
 
-  orderForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-
-    const customerName =
-      document.getElementById("customerName")?.value.trim() || "";
-
-    const customerPhone =
-      document.getElementById("customerPhone")?.value.trim() || "";
-
-    const notes =
-      document.getElementById("orderNotes")?.value.trim() || "";
-
-    if (!customerName || !customerPhone) {
-      showMessage(
-        "Please enter your name and phone number.",
-        "error"
-      );
-
-      return;
-    }
-
-    const modeText =
-      printMode.value === "bw" ? "B&W printing" : "Color printing";
-
-    const sideText =
-      sides.value === "2" ? "Double-sided" : "Single-sided";
-
-    const selectedExtras = [];
-
-    if (binding.checked) selectedExtras.push("Binding");
-    if (laminate.checked) selectedExtras.push("Laminate");
-    if (scanning.checked) selectedExtras.push("Scanning");
-    if (staples.checked) selectedExtras.push("Staples");
-
-    const message = [
-      "Hi FazaaPrint, I would like to place an order.",
-      "",
-      `Name: ${customerName}`,
-      `Phone: ${customerPhone}`,
-      `Printing: ${modeText}`,
-      `Setup: ${sideText}`,
-      `Pages: ${pageCount.value}`,
-      `Copies: ${copies.value}`,
-      printMode.value === "color"
-        ? `Estimated color coverage: ${coverageInput.value}%`
-        : "",
-      `Extras: ${
-        selectedExtras.length
-          ? selectedExtras.join(", ")
-          : "None"
-      }`,
-      `Estimated total: ${totalPrice.textContent}`,
-      notes ? `Notes: ${notes}` : "",
-      "",
-      "Please confirm the final price before printing."
-    ]
-      .filter(Boolean)
-      .join("\n");
-
-    const whatsappURL =
-      "https://wa.me/?text=" + encodeURIComponent(message);
-
-    window.open(whatsappURL, "_blank");
-  });
+  $("total").textContent = finalTotal.toFixed(2);
+  $("summaryCopies").textContent = copies;
 }
 
-/* Image color-coverage estimator */
-
-function setupFileAnalyzer() {
-  const fileInput = document.getElementById("printFile");
-  const analysisStatus = document.getElementById("analysisStatus");
-  const pageBreakdown = document.getElementById("pageBreakdown");
-  const pageCount = document.getElementById("pageCount");
-  const printMode = document.getElementById("printMode");
-  const coverageInput = document.getElementById("coverage");
-
-  if (!fileInput) return;
-
-  fileInput.addEventListener("change", async () => {
-    const files = Array.from(fileInput.files || []);
-
-    if (!files.length) return;
-
-    analysisStatus.textContent = "Analyzing your file…";
-    pageBreakdown.innerHTML = "";
-
-    const results = [];
-
-    for (const file of files) {
-      if (file.type.startsWith("image/")) {
-        try {
-          const result = await analyzeImage(file);
-          results.push(result);
-        } catch (error) {
-          results.push({
-            name: file.name,
-            coverage: 30,
-            estimatedPrice: 10.5,
-            note: "Automatic analysis was unavailable."
-          });
-        }
-      } else if (file.type === "application/pdf") {
-        const detectedPages = await estimatePDFPageCount(file);
-
-        for (let page = 1; page <= detectedPages; page++) {
-          results.push({
-            name: `${file.name} — Page ${page}`,
-            coverage: 30,
-            estimatedPrice: 10.5,
-            note: "Temporary PDF estimate"
-          });
-        }
-      }
-    }
-
-    if (!results.length) {
-      analysisStatus.textContent =
-        "Please upload PDF, JPG, PNG or another image format.";
-
-      return;
-    }
-
-    const averageCoverage =
-      results.reduce((sum, result) => {
-        return sum + result.coverage;
-      }, 0) / results.length;
-
-    pageCount.value = results.length;
-    printMode.value = "color";
-    coverageInput.value = Math.round(averageCoverage);
-
-    coverageInput.dispatchEvent(new Event("input"));
-
-    displayPageBreakdown(results);
-
-    analysisStatus.textContent =
-      `${results.length} page(s) analyzed. ` +
-      `Average estimated coverage: ${averageCoverage.toFixed(1)}%.`;
+async function coverageFromCanvas(canvas) {
+  const context = canvas.getContext("2d", {
+    willReadFrequently: true
   });
 
-  async function analyzeImage(file) {
-    const imageURL = URL.createObjectURL(file);
-    const image = new Image();
+  const pixels = context.getImageData(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  ).data;
 
-    image.src = imageURL;
-    await image.decode();
+  let inkAmount = 0;
+
+  for (let index = 0; index < pixels.length; index += 4) {
+    const red = pixels[index];
+    const green = pixels[index + 1];
+    const blue = pixels[index + 2];
+
+    inkAmount += 1 - (red + green + blue) / 765;
+  }
+
+  const coverage = inkAmount / (pixels.length / 4);
+
+  return Math.max(0, Math.min(1, coverage));
+}
+
+async function analyseImage(file) {
+  const bitmap = await createImageBitmap(file);
+
+  const scale = Math.min(
+    1,
+    720 / Math.max(bitmap.width, bitmap.height)
+  );
+
+  const canvas = document.createElement("canvas");
+
+  canvas.width = Math.max(
+    1,
+    Math.round(bitmap.width * scale)
+  );
+
+  canvas.height = Math.max(
+    1,
+    Math.round(bitmap.height * scale)
+  );
+
+  const context = canvas.getContext("2d");
+
+  context.drawImage(
+    bitmap,
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+  const coverage = await coverageFromCanvas(canvas);
+
+  bitmap.close();
+
+  return {
+    pages: 1,
+    coverage: coverage
+  };
+}
+
+async function analysePdf(file) {
+  const pdf = await pdfjsLib.getDocument({
+    data: await file.arrayBuffer()
+  }).promise;
+
+  let totalCoverage = 0;
+
+  for (
+    let pageNumber = 1;
+    pageNumber <= pdf.numPages;
+    pageNumber++
+  ) {
+    const page = await pdf.getPage(pageNumber);
+
+    const viewport = page.getViewport({
+      scale: 0.45
+    });
 
     const canvas = document.createElement("canvas");
 
-    const maximumSize = 700;
-    const scale = Math.min(
+    canvas.width = Math.max(
       1,
-      maximumSize / Math.max(image.width, image.height)
+      Math.round(viewport.width)
     );
 
-    canvas.width = Math.max(1, Math.round(image.width * scale));
-    canvas.height = Math.max(1, Math.round(image.height * scale));
-
-    const context = canvas.getContext("2d", {
-      willReadFrequently: true
-    });
-
-    context.drawImage(
-      image,
-      0,
-      0,
-      canvas.width,
-      canvas.height
+    canvas.height = Math.max(
+      1,
+      Math.round(viewport.height)
     );
 
-    const imageData = context.getImageData(
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    ).data;
+    const context = canvas.getContext("2d");
 
-    let totalInk = 0;
-    let sampleCount = 0;
+    await page.render({
+      canvasContext: context,
+      viewport: viewport
+    }).promise;
 
-    /*
-      Sample every fourth pixel for faster analysis.
-      White pixels count as little or no coverage.
-    */
+    totalCoverage += await coverageFromCanvas(canvas);
+  }
 
-    for (let index = 0; index < imageData.length; index += 16) {
-      const red = imageData[index];
-      const green = imageData[index + 1];
-      const blue = imageData[index + 2];
+  return {
+    pages: pdf.numPages,
+    coverage:
+      pdf.numPages > 0
+        ? totalCoverage / pdf.numPages
+        : 0
+  };
+}
 
-      const distanceFromWhite =
-        (255 - red) +
-        (255 - green) +
-        (255 - blue);
+async function acceptFile(file) {
+  if (!file) {
+    return;
+  }
 
-      const strongestChannel = Math.max(red, green, blue);
-      const weakestChannel = Math.min(red, green, blue);
-      const colorDifference = strongestChannel - weakestChannel;
+  const isPdf =
+    file.type === "application/pdf" ||
+    file.name.toLowerCase().endsWith(".pdf");
 
-      const darkness = Math.min(1, distanceFromWhite / 360);
-      const colorWeight =
-        0.72 + Math.min(colorDifference / 160, 0.28);
+  const isImage = file.type.startsWith("image/");
 
-      totalInk += darkness * colorWeight;
-      sampleCount++;
+  if (!isPdf && !isImage) {
+    showError("Please upload a PDF, JPG or PNG file.");
+    return;
+  }
+
+  showError("");
+
+  fileInfo = null;
+  $("payButton").disabled = true;
+
+  $("dropzone").innerHTML = `
+    <span class="spinner"></span>
+    <b>Reading your file…</b>
+    <small>Calculating pages and colour use</small>
+  `;
+
+  try {
+    if (isPdf) {
+      fileInfo = await analysePdf(file);
+    } else {
+      fileInfo = await analyseImage(file);
     }
 
-    const coverage = Math.max(
-      1,
-      Math.min(100, (totalInk / sampleCount) * 100)
+    $("dropzone").classList.add("has-file");
+
+    $("dropzone").innerHTML = `
+      <span class="file-check">✓</span>
+      <b>${safeText(file.name)}</b>
+      <small>
+        ${fileInfo.pages}
+        ${fileInfo.pages === 1 ? "page" : "pages"}
+        detected · Click to replace
+      </small>
+    `;
+
+    $("summaryPages").textContent = fileInfo.pages;
+
+    $("summaryCoverage").textContent =
+      `${Math.round(fileInfo.coverage * 100)}%`;
+
+    $("payButton").disabled = false;
+
+    updateTotal();
+  } catch (error) {
+    showError(
+      "We could not read this file. Please try another PDF or image."
     );
 
-    URL.revokeObjectURL(imageURL);
-
-    return {
-      name: file.name,
-      coverage,
-      estimatedPrice: coverage * 0.35,
-      note: "Analyzed on this device"
-    };
-  }
-
-  async function estimatePDFPageCount(file) {
-    try {
-      const buffer = await file.arrayBuffer();
-      const text = new TextDecoder("latin1").decode(buffer);
-
-      const pageMatches =
-        text.match(/\/Type\s*\/Page\b/g) || [];
-
-      return Math.max(1, Math.min(100, pageMatches.length));
-    } catch (error) {
-      return 1;
-    }
-  }
-
-  function displayPageBreakdown(results) {
-    pageBreakdown.innerHTML = results
-      .map((result, index) => {
-        return `
-          <article class="analysis-row">
-            <div>
-              <strong>Page ${index + 1}</strong>
-              <small>${escapeHTML(result.name)}</small>
-            </div>
-
-            <div class="coverage-bar">
-              <i style="width: ${result.coverage.toFixed(1)}%"></i>
-            </div>
-
-            <strong>${result.coverage.toFixed(1)}%</strong>
-
-            <b>${formatMoney(result.estimatedPrice)}</b>
-
-            <small>${result.note}</small>
-          </article>
-        `;
-      })
-      .join("");
+    resetUpload();
   }
 }
 
-/* Helpers */
+function safeText(text) {
+  const element = document.createElement("div");
 
-function formatMoney(value) {
-  const number = Number(value);
+  element.textContent = text;
 
-  if (Number.isInteger(number)) {
-    return `MVR ${number}`;
-  }
-
-  return `MVR ${number.toFixed(2)}`;
+  return element.innerHTML;
 }
 
-function escapeHTML(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+function showError(message) {
+  $("error").textContent = message;
+
+  $("error").classList.toggle(
+    "hidden",
+    !message
+  );
 }
 
-function showMessage(text, type = "success") {
-  let message = document.getElementById("siteMessage");
+function resetUpload() {
+  $("dropzone").classList.remove("has-file");
 
-  if (!message) {
-    message = document.createElement("div");
-    message.id = "siteMessage";
-    document.body.appendChild(message);
-  }
-
-  message.textContent = text;
-  message.className = `site-message ${type}`;
-
-  window.setTimeout(() => {
-    message.className = "site-message";
-  }, 3500);
+  $("dropzone").innerHTML = `
+    <span class="upload-icon">↑</span>
+    <b>Choose a file</b>
+    <small>or drag and drop it here</small>
+  `;
 }
+
+$("bwMode").addEventListener("click", () => {
+  setMode("bw");
+});
+
+$("colourMode").addEventListener("click", () => {
+  setMode("colour");
+});
+
+$("dropzone").addEventListener("click", () => {
+  $("fileInput").click();
+});
+
+$("fileInput").addEventListener("change", (event) => {
+  acceptFile(event.target.files[0]);
+});
+
+$("dropzone").addEventListener("dragover", (event) => {
+  event.preventDefault();
+});
+
+$("dropzone").addEventListener("drop", (event) => {
+  event.preventDefault();
+
+  acceptFile(event.dataTransfer.files[0]);
+});
+
+$("minus").addEventListener("click", () => {
+  copies = Math.max(1, copies - 1);
+
+  $("copies").textContent = copies;
+
+  updateTotal();
+});
+
+$("plus").addEventListener("click", () => {
+  copies = Math.min(99, copies + 1);
+
+  $("copies").textContent = copies;
+
+  updateTotal();
+});
+
+$("payButton").addEventListener("click", () => {
+  alert(
+    "BML payment will work after your FazaaPrint merchant gateway details are connected."
+  );
+});
