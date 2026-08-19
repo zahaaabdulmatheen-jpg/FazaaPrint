@@ -206,6 +206,50 @@
     </div>
   </main>
 
+  <div
+  class="invoice-modal hidden"
+  id="invoiceModal"
+>
+  <div
+    class="invoice-backdrop"
+    id="invoiceBackdrop"
+  ></div>
+
+  <section
+    class="invoice-sheet"
+    id="invoiceSheet"
+  >
+    <button
+      class="invoice-close"
+      id="closeInvoice"
+      type="button"
+      aria-label="Close invoice"
+    >
+      ×
+    </button>
+
+    <div id="invoiceContent"></div>
+
+    <div class="invoice-actions">
+      <button
+        class="invoice-cancel"
+        id="cancelInvoice"
+        type="button"
+      >
+        Close
+      </button>
+
+      <button
+        class="invoice-print"
+        id="printInvoice"
+        type="button"
+      >
+        Print or save invoice
+      </button>
+    </div>
+  </section>
+</div>
+  
   <footer>
     <span>© 2026 FazaaPrint</span>
     <span>Simple printing in Maldives.</span>
