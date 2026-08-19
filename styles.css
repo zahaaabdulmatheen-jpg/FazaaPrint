@@ -892,3 +892,31 @@ footer {
     align-items: flex-start;
   }
 }
+
+.invoice-button {
+  width: 100%;
+  margin-top: 22px;
+  padding: 15px 12px;
+  border: 1.5px solid var(--pink);
+  border-radius: 13px;
+  background: white;
+  color: var(--pink);
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.invoice-button:hover:not(:disabled) {
+  background: #fff2f6;
+  transform: translateY(-1px);
+}
+
+.invoice-button:disabled {
+  border-color: #d9cdd0;
+  color: #b8aaae;
+  cursor: not-allowed;
+}
+
+.invoice-button + .pay-button {
+  margin-top: 10px;
+}
