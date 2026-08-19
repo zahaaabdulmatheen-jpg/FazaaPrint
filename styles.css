@@ -682,3 +682,27 @@ footer {
 .mode-icon {
   grid-row: auto;
 }
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 17px;
+  background: white;
+  color: var(--pink);
+  border: 1px solid #f3ccd7;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(239, 71, 120, 0.1);
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: 0.2s ease;
+}
+
+.back:hover {
+  background: var(--pink);
+  color: white;
+  border-color: var(--pink);
+  transform: translateX(-3px);
+  box-shadow: 0 9px 22px rgba(239, 71, 120, 0.22);
+}
