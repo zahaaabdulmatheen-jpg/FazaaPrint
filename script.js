@@ -330,54 +330,41 @@ async function processUploadedFile(file) {
     getElement("payButton").disabled = false;
 
     calculateTotal();
-  } catch (error) {
-    console.error(error);
+ function calculateTotal() {
+  let priceForOneCopy = 0;
 
-    showError(
-      "The file could not be read. Please try another PDF, JPG or PNG."
-    );
+  if (uploadedFileInformation) {
+    const numberOfPages =
+      uploadedFileInformation.pages;
 
-    resetUploadArea();
+    const basicPrintingCharge =
+      numberOfPages * 2;
+
+    if (printMode === "bw") {
+      priceForOneCopy =
+        basicPrintingCharge;
+    } else {
+      const colourCharge =
+        numberOfPages *
+        uploadedFileInformation.coverage *
+        35;
+
+      priceForOneCopy =
+        basicPrintingCharge +
+        colourCharge;
+    }
   }
-}
 
-function makeTextSafe(text) {
-  const temporaryElement =
-    document.createElement("div");
-
-  temporaryElement.textContent = text;
-
-  return temporaryElement.innerHTML;
-}
-
-function showError(message) {
-  const errorMessage = getElement("error");
-
-  errorMessage.textContent = message;
-
-  errorMessage.classList.toggle(
-    "hidden",
-    message.length === 0
-  );
-}
-
-function resetUploadArea() {
-  uploadedFileInformation = null;
-
-  getElement("summaryPages").textContent = "—";
-  getElement("summaryCoverage").textContent = "—";
-  getElement("payButton").disabled = true;
-
-  getElement("dropzone").classList.remove(
-    "has-file"
+  const finalPrice = Math.ceil(
+    priceForOneCopy * numberOfCopies
   );
 
-  getElement("dropzone").innerHTML = `
-    <span class="upload-icon">↑</span>
-    <b>Choose a file</b>
-    <small>or drag and drop it here</small>
-  `;
+  getElement("total").textContent =
+    finalPrice.toString();
 
+  getElement("summaryCopies").textContent =
+    numberOfCopies;
+}
   calculateTotal();
 function calculateTotal() {
   let priceForOneCopy = 0;
