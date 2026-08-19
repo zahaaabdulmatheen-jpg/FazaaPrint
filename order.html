@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Order | FazaaPrint</title>
+
   <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -14,16 +16,25 @@
       <span>FazaaPrint</span>
     </a>
 
-    <a class="nav-order" href="order.html">Order now</a>
+    <a class="nav-order" href="order.html">
+      Order now
+    </a>
   </header>
 
   <main class="order-page">
-    <a class="back" href="index.html">← Back to home</a>
+    <a class="back" href="index.html">
+      ← Back to home
+    </a>
 
     <section class="order-heading">
       <p class="eyebrow">QUICK PRINT ORDER</p>
+
       <h1>Upload. Check. Pay.</h1>
-      <p>Your page count and estimated price are calculated automatically.</p>
+
+      <p>
+        Upload your files and choose the printing
+        settings for each one.
+      </p>
     </section>
 
     <div class="order-grid">
@@ -33,17 +44,29 @@
 
           <div>
             <b>Choose print type</b>
-            <small>Select how you want your document printed.</small>
+
+            <small>
+              This print type will apply to all
+              selected files.
+            </small>
           </div>
         </div>
 
         <div class="mode-grid">
-          <button class="mode active" id="bwMode" type="button">
+          <button
+            class="mode active"
+            id="bwMode"
+            type="button"
+          >
             <span class="mode-icon mono">A</span>
             <b>Black &amp; white</b>
           </button>
 
-          <button class="mode" id="colourMode" type="button">
+          <button
+            class="mode"
+            id="colourMode"
+            type="button"
+          >
             <span class="mode-icon colour">A</span>
             <b>Colour</b>
           </button>
@@ -55,8 +78,12 @@
           <span>2</span>
 
           <div>
-            <b>Upload your file</b>
-            <small>PDF, JPG or PNG. Pages are detected for you.</small>
+            <b>Upload your files</b>
+
+            <small>
+              You can select more than one PDF,
+              JPG or PNG.
+            </small>
           </div>
         </div>
 
@@ -64,58 +91,77 @@
           id="fileInput"
           type="file"
           accept=".pdf,image/png,image/jpeg"
+          multiple
           hidden
         >
 
-       <label class="dropzone" id="dropzone" for="fileInput">
-  <span class="upload-icon">↑</span>
-  <b>Choose a file</b>
-  <small>or drag and drop it here</small>
-</label>
+        <label
+          class="dropzone"
+          id="dropzone"
+          for="fileInput"
+        >
+          <span class="upload-icon">↑</span>
 
-        <p class="error hidden" id="error"></p>
+          <b>Choose your files</b>
 
-        <div class="quantity-row">
-          <div>
-            <b>Number of copies</b>
-            <small>Same document and settings</small>
+          <small>
+            Select one or several files
+          </small>
+        </label>
+
+        <p
+          class="error hidden"
+          id="error"
+        ></p>
+
+        <section
+          class="selected-files hidden"
+          id="selectedFilesSection"
+        >
+          <div class="selected-files-heading">
+            <div>
+              <b>Chosen files</b>
+
+              <small>
+                Choose the paper settings for
+                each file.
+              </small>
+            </div>
+
+            <button
+              id="clearFiles"
+              class="clear-files"
+              type="button"
+            >
+              Clear all
+            </button>
           </div>
 
-          <div class="counter">
-            <button id="minus" type="button" aria-label="Decrease copies">
-              −
-            </button>
-
-            <span id="copies">1</span>
-
-            <button id="plus" type="button" aria-label="Increase copies">
-              +
-            </button>
-          </div>
-        </div>
+          <div id="filesList"></div>
+        </section>
       </section>
 
       <aside class="summary-card">
-        <p class="summary-title">Order summary</p>
+        <p class="summary-title">
+          Order summary
+        </p>
 
         <div class="summary-row">
           <span>Print type</span>
-          <b id="summaryMode">Black &amp; white</b>
+
+          <b id="summaryMode">
+            Black &amp; white
+          </b>
         </div>
 
         <div class="summary-row">
-          <span>Pages</span>
-          <b id="summaryPages">—</b>
-        </div>
-
-        <div class="summary-row hidden" id="coverageRow">
-          <span>Estimated colour use</span>
-          <b id="summaryCoverage">—</b>
+          <span>Files</span>
+          <b id="summaryFiles">0</b>
         </div>
 
         <div class="summary-row">
-          <span>Copies</span>
-          <b id="summaryCopies">1</b>
+          <span>Printed pages</span>
+          <b id="summaryPages">0</b>
         </div>
 
         <div class="summary-total">
@@ -127,7 +173,12 @@
           </strong>
         </div>
 
-        <button class="pay-button" id="payButton" type="button" disabled>
+        <button
+          class="pay-button"
+          id="payButton"
+          type="button"
+          disabled
+        >
           Continue to BML payment
         </button>
 
@@ -135,9 +186,14 @@
           Secure payment through Bank of Maldives
         </p>
 
-<p class="note hidden" id="colourNote">
-  The total includes the MVR 2 basic printing charge plus the colour usage charge.
-</p>
+        <p
+          class="note hidden"
+          id="colourNote"
+        >
+          Colour printing includes the basic
+          black-and-white printing charge plus
+          the calculated colour usage charge.
+        </p>
       </aside>
     </div>
   </main>
@@ -148,6 +204,7 @@
   </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
   <script src="script.js"></script>
 </body>
 </html>
