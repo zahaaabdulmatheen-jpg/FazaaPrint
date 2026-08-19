@@ -674,3 +674,11 @@ footer {
 .mode-icon {
   grid-row: auto;
 }
+.mode {
+  grid-template-rows: auto;
+  align-items: center;
+}
+
+.mode-icon {
+  grid-row: auto;
+}
