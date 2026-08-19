@@ -1,693 +1,147 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta
-    name="description"
-    content="Place a printing order with FazaaPrint"
-  >
-
-  <title>Order Online | FazaaPrint</title>
-
+  <title>Order | FazaaPrint</title>
   <link rel="stylesheet" href="styles.css">
-
-  <style>
-    .order-layout {
-      padding: 20px 8% 100px;
-      display: grid;
-      grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.7fr);
-      align-items: start;
-      gap: 24px;
-    }
-
-    .order-form {
-      display: grid;
-      gap: 18px;
-    }
-
-    .order-step {
-      padding: 27px;
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-    }
-
-    .step-heading {
-      margin-bottom: 22px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .step-heading span {
-      width: 35px;
-      height: 35px;
-      flex-shrink: 0;
-      display: grid;
-      place-items: center;
-      color: white;
-      background: var(--red);
-      border-radius: 50%;
-      font-size: 11px;
-      font-weight: 800;
-    }
-
-    .step-heading h2 {
-      margin: 0;
-      font: 700 21px "Manrope", sans-serif;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-    }
-
-    .form-grid label,
-    .single-field label {
-      color: var(--grey);
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .full-field {
-      grid-column: 1 / -1;
-    }
-
-    .extras-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-
-    .extra-option {
-      padding: 15px;
-      display: flex;
-      align-items: center;
-      gap: 11px;
-      color: var(--black);
-      background: var(--light-pink);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      cursor: pointer;
-    }
-
-    .extra-option input {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--red);
-    }
-
-    .extra-option span {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .extra-option small {
-      margin-top: 3px;
-      color: var(--grey);
-    }
-
-    .coverage-control {
-      padding: 16px;
-      background: var(--light-pink);
-      border-radius: 12px;
-    }
-
-    .coverage-header {
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
-      font-weight: 700;
-    }
-
-    .coverage-control input {
-      width: 100%;
-      margin-top: 15px;
-      accent-color: var(--red);
-    }
-
-    .upload-area {
-      position: relative;
-      padding: 35px 20px;
-      text-align: center;
-      background: var(--light-pink);
-      border: 2px dashed var(--pink);
-      border-radius: 15px;
-    }
-
-    .upload-area input {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      opacity: 0;
-    }
-
-    .upload-area label {
-      cursor: pointer;
-    }
-
-    .upload-icon {
-      width: 50px;
-      height: 50px;
-      margin: 0 auto 12px;
-      display: grid;
-      place-items: center;
-      color: white;
-      background: var(--red);
-      border-radius: 50%;
-      font-size: 24px;
-    }
-
-    .upload-area strong {
-      display: block;
-      font-size: 17px;
-    }
-
-    .upload-area small {
-      margin-top: 6px;
-      display: block;
-      color: var(--grey);
-    }
-
-    #analysisStatus {
-      margin: 15px 0 0;
-      color: var(--grey);
-      line-height: 1.5;
-    }
-
-    .page-breakdown {
-      margin-top: 18px;
-    }
-
-    .analysis-row {
-      padding: 14px 0;
-      display: grid;
-      grid-template-columns: minmax(130px, 1fr) 1.2fr 65px 85px;
-      align-items: center;
-      gap: 12px;
-      border-top: 1px solid var(--border);
-    }
-
-    .analysis-row > div:first-child {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .analysis-row small {
-      color: var(--grey);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .analysis-row > small {
-      grid-column: 1 / -1;
-    }
-
-    .coverage-bar {
-      height: 8px;
-      overflow: hidden;
-      background: var(--border);
-      border-radius: 10px;
-    }
-
-    .coverage-bar i {
-      height: 100%;
-      display: block;
-      background: linear-gradient(
-        90deg,
-        var(--pink),
-        var(--red),
-        var(--black)
-      );
-      border-radius: 10px;
-    }
-
-    .estimate-warning {
-      margin-top: 18px;
-      padding: 15px;
-      color: #684b32;
-      background: #fff5de;
-      border-radius: 12px;
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .order-summary {
-      position: sticky;
-      top: 105px;
-      padding: 25px;
-      background: var(--black);
-      color: white;
-      border-radius: 22px;
-      box-shadow: var(--shadow);
-    }
-
-    .order-summary .eyebrow {
-      color: var(--pink);
-    }
-
-    .order-summary h2 {
-      margin: 10px 0 25px;
-      font: 700 26px "Manrope", sans-serif;
-    }
-
-    .total-display {
-      padding-bottom: 22px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-    }
-
-    .total-display small {
-      color: #c7babc;
-    }
-
-    .total-display strong {
-      margin-top: 5px;
-      display: block;
-      font: 800 44px "Manrope", sans-serif;
-      letter-spacing: -0.05em;
-    }
-
-    .summary-lines {
-      padding: 17px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-    }
-
-    .summary-lines div {
-      margin: 10px 0;
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
-      font-size: 14px;
-    }
-
-    .formula-box {
-      margin: 18px 0;
-      padding: 14px;
-      color: var(--black);
-      background: var(--pink);
-      border-radius: 12px;
-    }
-
-    .formula-box strong {
-      font-size: 13px;
-    }
-
-    .formula-box p {
-      margin: 5px 0 0;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    .order-summary .primary-button {
-      width: 100%;
-      color: var(--black);
-      background: white;
-    }
-
-    .order-summary .primary-button:hover {
-      color: white;
-      background: var(--red);
-    }
-
-    .summary-note {
-      margin: 12px 0 0;
-      display: block;
-      color: #c7babc;
-      text-align: center;
-      font-size: 11px;
-      line-height: 1.5;
-    }
-
-    textarea.form-control {
-      min-height: 110px;
-      resize: vertical;
-    }
-
-    .site-message {
-      position: fixed;
-      z-index: 300;
-      left: 50%;
-      bottom: -100px;
-      padding: 14px 20px;
-      color: white;
-      background: var(--black);
-      border-radius: 999px;
-      box-shadow: var(--shadow);
-      transform: translateX(-50%);
-      transition: bottom 0.3s ease;
-    }
-
-    .site-message.success,
-    .site-message.error {
-      bottom: 25px;
-    }
-
-    .site-message.error {
-      background: var(--red);
-    }
-
-    @media (max-width: 850px) {
-      .order-layout {
-        grid-template-columns: 1fr;
-      }
-
-      .order-summary {
-        position: static;
-      }
-    }
-
-    @media (max-width: 600px) {
-      .order-layout {
-        padding: 10px 18px 70px;
-      }
-
-      .order-step {
-        padding: 21px 17px;
-      }
-
-      .form-grid,
-      .extras-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .analysis-row {
-        grid-template-columns: 1fr 55px 80px;
-      }
-
-      .coverage-bar {
-        grid-column: 1 / -1;
-        grid-row: 2;
-      }
-    }
-  </style>
 </head>
 
 <body>
-  <header class="header">
-    <a href="index.html" class="logo">
-      <img src="logo.png" alt="FazaaPrint logo">
+  <header class="nav">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">F</span>
+      <span>FazaaPrint</span>
     </a>
 
-    <button
-      class="menu-button"
-      id="menuButton"
-      aria-label="Open menu"
-    >
-      ☰
-    </button>
-
-    <nav id="navigation">
-      <a href="index.html">Home</a>
-      <a href="services.html">Services & Prices</a>
-      <a href="past-papers.html">Past Papers</a>
-      <a href="contact.html">Contact</a>
-      <a href="order.html" class="order-link active">
-        Order Online →
-      </a>
-    </nav>
+    <a class="nav-order" href="order.html">Order now</a>
   </header>
 
-  <main>
-    <section class="page-hero">
-      <span class="eyebrow">DEDICATED ORDERING PLATFORM</span>
+  <main class="order-page">
+    <a class="back" href="index.html">← Back to home</a>
 
-      <h1>
-        Build your<br>
-        <em>print order.</em>
-      </h1>
-
-      <p>
-        Configure your printing, upload your file and receive a
-        transparent estimated price before sending the order.
-      </p>
+    <section class="order-heading">
+      <p class="eyebrow">QUICK PRINT ORDER</p>
+      <h1>Upload. Check. Pay.</h1>
+      <p>Your page count and estimated price are calculated automatically.</p>
     </section>
 
-    <section class="order-layout">
-      <form class="order-form" id="orderForm">
-        <div class="order-step">
-          <div class="step-heading">
-            <span>01</span>
-            <h2>Choose your print settings</h2>
-          </div>
-
-          <div class="form-grid">
-            <label>
-              Printing mode
-
-              <select class="form-control" id="printMode">
-                <option value="bw">
-                  Black & White — MVR 2 per side
-                </option>
-
-                <option value="color">
-                  Color — up to MVR 35 per side
-                </option>
-              </select>
-            </label>
-
-            <label>
-              Sides
-
-              <select class="form-control" id="sides">
-                <option value="1">Single-sided</option>
-                <option value="2">Double-sided</option>
-              </select>
-            </label>
-
-            <label>
-              Number of pages
-
-              <input
-                class="form-control"
-                id="pageCount"
-                type="number"
-                min="1"
-                value="1"
-                required
-              >
-            </label>
-
-            <label>
-              Number of copies
-
-              <input
-                class="form-control"
-                id="copies"
-                type="number"
-                min="1"
-                value="1"
-                required
-              >
-            </label>
-
-            <div
-              class="coverage-control full-field"
-              id="coverageContainer"
-              hidden
-            >
-              <div class="coverage-header">
-                <span>Estimated color coverage</span>
-                <strong id="coverageValue">100%</strong>
-              </div>
-
-              <input
-                id="coverage"
-                type="range"
-                min="1"
-                max="100"
-                value="100"
-              >
-            </div>
-          </div>
-        </div>
-
-        <div class="order-step">
-          <div class="step-heading">
-            <span>02</span>
-            <h2>Add finishing services</h2>
-          </div>
-
-          <div class="extras-grid">
-            <label class="extra-option">
-              <input id="binding" type="checkbox">
-
-              <span>
-                <strong>Binding</strong>
-                <small>+ MVR 20</small>
-              </span>
-            </label>
-
-            <label class="extra-option">
-              <input id="laminate" type="checkbox">
-
-              <span>
-                <strong>Laminate</strong>
-                <small>+ MVR 15 per page</small>
-              </span>
-            </label>
-
-            <label class="extra-option">
-              <input id="scanning" type="checkbox">
-
-              <span>
-                <strong>Scanning</strong>
-                <small>+ MVR 10</small>
-              </span>
-            </label>
-
-            <label class="extra-option">
-              <input id="staples" type="checkbox">
-
-              <span>
-                <strong>Staples</strong>
-                <small>+ MVR 4</small>
-              </span>
-            </label>
-          </div>
-        </div>
-
-        <div class="order-step">
-          <div class="step-heading">
-            <span>03</span>
-            <h2>Upload your document</h2>
-          </div>
-
-          <div class="upload-area">
-            <input
-              id="printFile"
-              type="file"
-              accept="application/pdf,image/*"
-              multiple
-            >
-
-            <label for="printFile">
-              <span class="upload-icon">↑</span>
-              <strong>Choose PDF or page images</strong>
-
-              <small>
-                JPG and PNG images receive automatic color analysis.
-              </small>
-            </label>
-          </div>
-
-          <p id="analysisStatus">
-            Your files are analyzed privately inside your browser.
-          </p>
-
-          <div
-            class="page-breakdown"
-            id="pageBreakdown"
-          ></div>
-
-          <div class="estimate-warning">
-            <strong>Important:</strong>
-            The color-coverage result is an estimate. PDF pages receive
-            a temporary 30% estimate because normal web browsers cannot
-            reliably inspect every PDF page without an additional PDF
-            processing library. FazaaPrint will review your file and
-            confirm the final price before printing.
-          </div>
-        </div>
-
-        <div class="order-step">
-          <div class="step-heading">
-            <span>04</span>
-            <h2>Your contact details</h2>
-          </div>
-
-          <div class="form-grid">
-            <label>
-              Your name
-
-              <input
-                class="form-control"
-                id="customerName"
-                type="text"
-                placeholder="Enter your name"
-                required
-              >
-            </label>
-
-            <label>
-              Phone number
-
-              <input
-                class="form-control"
-                id="customerPhone"
-                type="tel"
-                placeholder="Enter your phone number"
-                required
-              >
-            </label>
-
-            <label class="full-field">
-              Order notes
-
-              <textarea
-                class="form-control"
-                id="orderNotes"
-                placeholder="Paper type, collection time or other instructions"
-              ></textarea>
-            </label>
-          </div>
-        </div>
-      </form>
-
-      <aside class="order-summary">
-        <span class="eyebrow">LIVE ESTIMATE</span>
-        <h2>Order summary</h2>
-
-        <div class="total-display">
-          <small>Estimated total</small>
-          <strong id="totalPrice">MVR 2</strong>
-        </div>
-
-        <div class="summary-lines">
-          <div>
-            <span>Printing</span>
-            <strong id="printingPrice">MVR 2</strong>
-          </div>
+    <div class="order-grid">
+      <section class="order-card">
+        <div class="step">
+          <span>1</span>
 
           <div>
-            <span>Extra services</span>
-            <strong id="extrasPrice">MVR 0</strong>
+            <b>Choose print type</b>
+            <small>Select how you want your document printed.</small>
           </div>
         </div>
 
-        <div class="formula-box">
-          <strong>How this was calculated</strong>
+        <div class="mode-grid">
+          <button class="mode active" id="bwMode" type="button">
+            <span class="mode-icon mono">A</span>
+            <b>Black &amp; white</b>
+            <small>MVR 2 per page</small>
+          </button>
 
-          <p id="calculationFormula">
-            1 page × 1 printed side × 1 copy × MVR 2
-          </p>
+          <button class="mode" id="colourMode" type="button">
+            <span class="mode-icon colour">A</span>
+            <b>Colour</b>
+            <small>Based on colour used</small>
+          </button>
         </div>
 
-        <button
-          class="primary-button"
-          type="submit"
-          form="orderForm"
+        <div class="divider"></div>
+
+        <div class="step">
+          <span>2</span>
+
+          <div>
+            <b>Upload your file</b>
+            <small>PDF, JPG or PNG. Pages are detected for you.</small>
+          </div>
+        </div>
+
+        <input
+          id="fileInput"
+          type="file"
+          accept=".pdf,image/png,image/jpeg"
+          hidden
         >
-          Send Order on WhatsApp →
+
+        <button class="dropzone" id="dropzone" type="button">
+          <span class="upload-icon">↑</span>
+          <b>Choose a file</b>
+          <small>or drag and drop it here</small>
         </button>
 
-        <small class="summary-note">
-          FazaaPrint will confirm your file, availability and final
-          price before printing.
-        </small>
+        <p class="error hidden" id="error"></p>
+
+        <div class="quantity-row">
+          <div>
+            <b>Number of copies</b>
+            <small>Same document and settings</small>
+          </div>
+
+          <div class="counter">
+            <button id="minus" type="button" aria-label="Decrease copies">−</button>
+            <span id="copies">1</span>
+            <button id="plus" type="button" aria-label="Increase copies">+</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="summary-card">
+        <p class="summary-title">Order summary</p>
+
+        <div class="summary-row">
+          <span>Print type</span>
+          <b id="summaryMode">Black &amp; white</b>
+        </div>
+
+        <div class="summary-row">
+          <span>Pages</span>
+          <b id="summaryPages">—</b>
+        </div>
+
+        <div class="summary-row hidden" id="coverageRow">
+          <span>Estimated colour use</span>
+          <b id="summaryCoverage">—</b>
+        </div>
+
+        <div class="summary-row">
+          <span>Copies</span>
+          <b id="summaryCopies">1</b>
+        </div>
+
+        <div class="summary-total">
+          <span>Total</span>
+
+          <strong>
+            <small>MVR</small>
+            <span id="total">0.00</span>
+          </strong>
+        </div>
+
+        <button class="pay-button" id="payButton" type="button" disabled>
+          Continue to BML payment
+        </button>
+
+        <p class="secure">Secure payment through Bank of Maldives</p>
+
+        <p class="note hidden" id="colourNote">
+          Colour price is estimated from the ink coverage in your file.
+          A page using 100% colour costs MVR 35.
+        </p>
       </aside>
-    </section>
+    </div>
   </main>
 
   <footer>
-    <img src="logo.png" alt="FazaaPrint logo">
-    <p>Made for bright ideas and busy students.</p>
-    <span>© 2026 FazaaPrint · Maldives</span>
+    <span>© 2026 FazaaPrint</span>
+    <span>Simple printing in Maldives.</span>
   </footer>
 
-  <script src="script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
