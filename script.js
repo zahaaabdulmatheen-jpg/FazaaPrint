@@ -73,14 +73,12 @@ function calculateColourCoverage(canvas) {
     return 0;
   }
 
-  const imageData = context.getImageData(
+  const pixels = context.getImageData(
     0,
     0,
     canvas.width,
     canvas.height
-  );
-
-  const pixels = imageData.data;
+  ).data;
 
   let totalColour = 0;
   let pixelCount = 0;
@@ -109,11 +107,10 @@ function calculateColourCoverage(canvas) {
       blue
     );
 
-    const colourAmount =
+    totalColour +=
       ((highestColour - lowestColour) / 255) *
       transparency;
 
-    totalColour += colourAmount;
     pixelCount++;
   }
 
@@ -138,11 +135,9 @@ function loadImageFile(file) {
       URL.createObjectURL(file);
 
     image.onload = function () {
-      const maximumSize = 720;
-
       const scale = Math.min(
         1,
-        maximumSize /
+        720 /
           Math.max(
             image.width,
             image.height
@@ -312,14 +307,15 @@ async function analyseFile(file) {
   }
 
   if (isPdf) {
-    return await loadPdfFile(file);
+    return loadPdfFile(file);
   }
 
-  return await loadImageFile(file);
+  return loadImageFile(file);
 }
 
 async function processUploadedFiles(fileList) {
-  const files = Array.from(fileList);
+  const files =
+    Array.from(fileList);
 
   if (files.length === 0) {
     return;
@@ -467,9 +463,7 @@ function renderSelectedFiles() {
           file.size === "A4"
             ? `
               <div class="file-setting">
-                <label>
-                  Paper type
-                </label>
+                <label>Paper type</label>
 
                 <select
                   data-action="paper"
@@ -553,9 +547,7 @@ function renderSelectedFiles() {
 
             <div class="file-settings">
               <div class="file-setting">
-                <label>
-                  Paper size
-                </label>
+                <label>Paper size</label>
 
                 <select
                   data-action="size"
@@ -599,9 +591,7 @@ function renderSelectedFiles() {
               ${paperChoice}
 
               <div class="file-setting">
-                <label>
-                  Copies
-                </label>
+                <label>Copies</label>
 
                 <div class="file-counter">
                   <button
@@ -650,18 +640,55 @@ function updateOrderSummary() {
   getElement("total").textContent =
     getOrderTotal();
 
-  function getPaperDescription(file) {
-  if (file.size === "A4") {
-    return file.paper === "sticker"
-      ? "A4 Sticker Paper"
-      : "A4 Normal Paper";
-  }
+  getElement("payButton").disabled =
+    selectedFiles.length === 0;
 
-  return `${file.size} Normal Paper`;
+  const invoiceButton =
+    getElement("invoiceButton");
+
+  if (invoiceButton) {
+    invoiceButton.disabled =
+      selectedFiles.length === 0;
+  }
 }
 
-function createInvoice() {
+function makeTextSafe(text) {
+  const element =
+    document.createElement("div");
+
+  element.textContent = text;
+
+  return element.innerHTML;
+}
+
+function showError(message) {
+  const errorMessage =
+    getElement("error");
+
+  errorMessage.textContent = message;
+
+  errorMessage.classList.toggle(
+    "hidden",
+    message.length === 0
+  );
+}
+
+function showInvoice() {
   if (selectedFiles.length === 0) {
+    return;
+  }
+
+  const modal =
+    getElement("invoiceModal");
+
+  const content =
+    getElement("invoiceContent");
+
+  if (!modal || !content) {
+    alert(
+      "The invoice panel is missing from order.html."
+    );
+
     return;
   }
 
@@ -681,363 +708,158 @@ function createInvoice() {
       }
     );
 
-  const invoiceRows = selectedFiles
-    .map((file, index) => {
-      return `
-        <tr>
-          <td>
-            ${index + 1}
-          </td>
+  const invoiceRows =
+    selectedFiles
+      .map((file, index) => {
+        const paperDescription =
+          file.size === "A4" &&
+          file.paper === "sticker"
+            ? "A4 Sticker Paper"
+            : `${file.size} Normal Paper`;
 
-          <td>
-            ${makeTextSafe(file.name)}
-          </td>
+        return `
+          <tr>
+            <td>${index + 1}</td>
 
-          <td>
-            ${getPaperDescription(file)}
-          </td>
+            <td class="invoice-file-name">
+              ${makeTextSafe(file.name)}
+            </td>
 
-          <td>
-            ${
-              printMode === "bw"
-                ? "Black & white"
-                : "Colour"
-            }
-          </td>
+            <td>
+              ${paperDescription}
+            </td>
 
-          <td>
-            ${file.pages}
-          </td>
+            <td>
+              ${
+                printMode === "bw"
+                  ? "Black & white"
+                  : "Colour"
+              }
+            </td>
 
-          <td>
-            ${file.copies}
-          </td>
+            <td>${file.pages}</td>
 
-          <td class="amount">
-            MVR ${getFilePrice(file)}
-          </td>
-        </tr>
-      `;
-    })
-    .join("");
+            <td>${file.copies}</td>
 
-  const invoiceWindow = window.open(
-    "",
-    "_blank",
-    "width=900,height=750"
-  );
+            <td class="invoice-amount">
+              MVR ${getFilePrice(file)}
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
 
-  if (!invoiceWindow) {
-    alert(
-      "Please allow pop-ups to view your invoice."
-    );
+  content.innerHTML = `
+    <header class="invoice-header">
+      <div class="invoice-brand">
+        <span class="invoice-logo">F</span>
 
-    return;
-  }
+        <div>
+          <h2>FazaaPrint</h2>
 
-  invoiceWindow.document.write(`
-    <!doctype html>
-
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-
-      <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1"
-      >
-
-      <title>
-        FazaaPrint Invoice ${invoiceNumber}
-      </title>
-
-      <style>
-        * {
-          box-sizing: border-box;
-        }
-
-        body {
-          margin: 0;
-          padding: 40px;
-          background: #f8f4f5;
-          color: #2d1720;
-          font-family: Arial, Helvetica, sans-serif;
-        }
-
-        .invoice {
-          max-width: 900px;
-          margin: auto;
-          padding: 42px;
-          background: white;
-          border-radius: 18px;
-          box-shadow:
-            0 15px 45px rgba(45, 23, 32, 0.12);
-        }
-
-        .invoice-header {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 30px;
-          padding-bottom: 25px;
-          border-bottom: 2px solid #f4dbe2;
-        }
-
-        .brand {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          font-size: 24px;
-          font-weight: 900;
-        }
-
-        .logo {
-          display: grid;
-          place-items: center;
-          width: 48px;
-          height: 48px;
-          border-radius: 50%;
-          background: #ef4778;
-          color: white;
-          font-size: 25px;
-          font-weight: 900;
-        }
-
-        .invoice-title {
-          text-align: right;
-        }
-
-        .invoice-title h1 {
-          margin: 0 0 7px;
-          color: #ef4778;
-          font-size: 28px;
-        }
-
-        .invoice-title p {
-          margin: 3px 0;
-          color: #7d6c72;
-          font-size: 13px;
-        }
-
-        .status {
-          display: inline-block;
-          margin-top: 14px;
-          padding: 7px 12px;
-          border-radius: 20px;
-          background: #fff1c9;
-          color: #77580e;
-          font-size: 12px;
-          font-weight: 900;
-        }
-
-        .invoice-information {
-          margin: 28px 0;
-          color: #7d6c72;
-          line-height: 1.7;
-        }
-
-        .invoice-information b {
-          color: #2d1720;
-        }
-
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-top: 25px;
-          font-size: 13px;
-        }
-
-        th {
-          padding: 12px 9px;
-          background: #fff4f7;
-          color: #7d6c72;
-          text-align: left;
-        }
-
-        td {
-          padding: 14px 9px;
-          border-bottom: 1px solid #eee2e5;
-          vertical-align: top;
-        }
-
-        .amount {
-          white-space: nowrap;
-          font-weight: 800;
-        }
-
-        .invoice-total {
-          display: flex;
-          align-items: center;
-          justify-content: flex-end;
-          gap: 30px;
-          margin-top: 30px;
-          padding-top: 22px;
-          border-top: 2px solid #f4dbe2;
-        }
-
-        .invoice-total span {
-          font-size: 16px;
-          font-weight: 800;
-        }
-
-        .invoice-total strong {
-          color: #ef4778;
-          font-size: 30px;
-        }
-
-        .invoice-note {
-          margin-top: 35px;
-          padding: 16px;
-          border-radius: 10px;
-          background: #fff8e6;
-          color: #725a20;
-          font-size: 12px;
-          line-height: 1.6;
-        }
-
-        .actions {
-          display: flex;
-          justify-content: center;
-          margin-top: 28px;
-        }
-
-        .actions button {
-          border: 0;
-          border-radius: 11px;
-          padding: 13px 22px;
-          background: #ef4778;
-          color: white;
-          font-size: 14px;
-          font-weight: 900;
-          cursor: pointer;
-        }
-
-        @media print {
-          body {
-            padding: 0;
-            background: white;
-          }
-
-          .invoice {
-            box-shadow: none;
-          }
-
-          .actions {
-            display: none;
-          }
-        }
-      </style>
-    </head>
-
-    <body>
-      <main class="invoice">
-        <header class="invoice-header">
-          <div class="brand">
-            <span class="logo">F</span>
-            <span>FazaaPrint</span>
-          </div>
-
-          <div class="invoice-title">
-            <h1>ORDER INVOICE</h1>
-
-            <p>
-              Invoice: ${invoiceNumber}
-            </p>
-
-            <p>
-              Date: ${invoiceDate}
-            </p>
-
-            <span class="status">
-              AMOUNT DUE
-            </span>
-          </div>
-        </header>
-
-        <section class="invoice-information">
-          <b>Printing order</b><br>
-
-          ${selectedFiles.length}
-          ${
-            selectedFiles.length === 1
-              ? "file"
-              : "files"
-          }
-
-          · ${getTotalPrintedPages()}
-          printed pages
-        </section>
-
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>File</th>
-              <th>Paper</th>
-              <th>Printing</th>
-              <th>Pages</th>
-              <th>Copies</th>
-              <th>Amount</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            ${invoiceRows}
-          </tbody>
-        </table>
-
-        <div class="invoice-total">
-          <span>Total amount due</span>
-
-          <strong>
-            MVR ${getOrderTotal()}
-          </strong>
+          <p>
+            Printing made easier in Maldives
+          </p>
         </div>
+      </div>
 
-        <p class="invoice-note">
-          This invoice shows the amount due before
-          payment. A paid invoice will be issued after
-          payment is successfully confirmed.
+      <div class="invoice-heading">
+        <h1>INVOICE</h1>
+
+        <p>
+          <b>Invoice:</b>
+          ${invoiceNumber}
         </p>
 
-        <div class="actions">
-          <button onclick="window.print()">
-            Print or save invoice
-          </button>
-        </div>
-      </main>
-    </body>
-    </html>
-  `);
+        <p>
+          <b>Date:</b>
+          ${invoiceDate}
+        </p>
 
-  invoiceWindow.document.close();
+        <span class="invoice-status">
+          AMOUNT DUE
+        </span>
+      </div>
+    </header>
+
+    <section class="invoice-order-information">
+      <div>
+        <small>ORDER TYPE</small>
+
+        <b>
+          ${
+            printMode === "bw"
+              ? "Black & white printing"
+              : "Colour printing"
+          }
+        </b>
+      </div>
+
+      <div>
+        <small>FILES</small>
+        <b>${selectedFiles.length}</b>
+      </div>
+
+      <div>
+        <small>PRINTED PAGES</small>
+        <b>${getTotalPrintedPages()}</b>
+      </div>
+    </section>
+
+    <div class="invoice-table-container">
+      <table class="invoice-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>File</th>
+            <th>Paper</th>
+            <th>Printing</th>
+            <th>Pages</th>
+            <th>Copies</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          ${invoiceRows}
+        </tbody>
+      </table>
+    </div>
+
+    <section class="invoice-total-area">
+      <div>
+        <small>TOTAL AMOUNT DUE</small>
+
+        <strong>
+          MVR ${getOrderTotal()}
+        </strong>
+      </div>
+    </section>
+
+    <p class="invoice-message">
+      This invoice shows the amount due before
+      payment. A paid invoice will be issued after
+      payment has been successfully confirmed.
+    </p>
+  `;
+
+  modal.classList.remove("hidden");
+
+  document.body.classList.add(
+    "invoice-open"
+  );
 }
-  
-  getElement("payButton").disabled =
-    selectedFiles.length === 0;
-  
-  getElement("invoiceButton").disabled =
-  selectedFiles.length === 0;
-}
 
-function makeTextSafe(text) {
-  const temporaryElement =
-    document.createElement("div");
+function closeInvoice() {
+  const modal =
+    getElement("invoiceModal");
 
-  temporaryElement.textContent = text;
+  if (modal) {
+    modal.classList.add("hidden");
+  }
 
-  return temporaryElement.innerHTML;
-}
-
-function showError(message) {
-  const errorMessage =
-    getElement("error");
-
-  errorMessage.textContent = message;
-
-  errorMessage.classList.toggle(
-    "hidden",
-    message.length === 0
+  document.body.classList.remove(
+    "invoice-open"
   );
 }
 
@@ -1094,16 +916,18 @@ getElement("filesList").addEventListener(
       event.target.dataset.fileId
     );
 
-    const file = selectedFiles.find(
-      (item) => item.id === fileId
-    );
+    const file =
+      selectedFiles.find(
+        (item) => item.id === fileId
+      );
 
     if (!file) {
       return;
     }
 
     if (action === "size") {
-      file.size = event.target.value;
+      file.size =
+        event.target.value;
 
       if (file.size !== "A4") {
         file.paper = "normal";
@@ -1111,7 +935,8 @@ getElement("filesList").addEventListener(
     }
 
     if (action === "paper") {
-      file.paper = event.target.value;
+      file.paper =
+        event.target.value;
     }
 
     renderSelectedFiles();
@@ -1121,9 +946,10 @@ getElement("filesList").addEventListener(
 getElement("filesList").addEventListener(
   "click",
   function (event) {
-    const button = event.target.closest(
-      "button[data-action]"
-    );
+    const button =
+      event.target.closest(
+        "button[data-action]"
+      );
 
     if (!button) {
       return;
@@ -1136,14 +962,16 @@ getElement("filesList").addEventListener(
       button.dataset.fileId
     );
 
-    const file = selectedFiles.find(
-      (item) => item.id === fileId
-    );
+    const file =
+      selectedFiles.find(
+        (item) => item.id === fileId
+      );
 
     if (action === "remove") {
       selectedFiles =
         selectedFiles.filter(
-          (item) => item.id !== fileId
+          (item) =>
+            item.id !== fileId
         );
     }
 
@@ -1187,6 +1015,67 @@ getElement("clearFiles").addEventListener(
         Select one or several files
       </small>
     `;
+  }
+);
+
+const invoiceButton =
+  getElement("invoiceButton");
+
+if (invoiceButton) {
+  invoiceButton.addEventListener(
+    "click",
+    showInvoice
+  );
+}
+
+const closeInvoiceButton =
+  getElement("closeInvoice");
+
+if (closeInvoiceButton) {
+  closeInvoiceButton.addEventListener(
+    "click",
+    closeInvoice
+  );
+}
+
+const cancelInvoiceButton =
+  getElement("cancelInvoice");
+
+if (cancelInvoiceButton) {
+  cancelInvoiceButton.addEventListener(
+    "click",
+    closeInvoice
+  );
+}
+
+const invoiceBackdrop =
+  getElement("invoiceBackdrop");
+
+if (invoiceBackdrop) {
+  invoiceBackdrop.addEventListener(
+    "click",
+    closeInvoice
+  );
+}
+
+const printInvoiceButton =
+  getElement("printInvoice");
+
+if (printInvoiceButton) {
+  printInvoiceButton.addEventListener(
+    "click",
+    function () {
+      window.print();
+    }
+  );
+}
+
+document.addEventListener(
+  "keydown",
+  function (event) {
+    if (event.key === "Escape") {
+      closeInvoice();
+    }
   }
 );
 
