@@ -1,8 +1,37 @@
-const getElement = (id) => document.getElementById(id);
+const getElement = (id) =>
+  document.getElementById(id);
 
 let printMode = "bw";
-let uploadedFileInformation = null;
-let numberOfCopies = 1;
+let selectedFiles = [];
+let nextFileId = 1;
+
+const prices = {
+  A5: {
+    normal: {
+      blackAndWhite: 1,
+      fullColour: 19
+    }
+  },
+
+  A4: {
+    normal: {
+      blackAndWhite: 2,
+      fullColour: 35
+    },
+
+    sticker: {
+      blackAndWhite: 10,
+      fullColour: 45
+    }
+  },
+
+  A3: {
+    normal: {
+      blackAndWhite: 8,
+      fullColour: 45
+    }
+  }
+};
 
 if (typeof pdfjsLib !== "undefined") {
   pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -27,53 +56,12 @@ function selectPrintMode(selectedMode) {
       ? "Black & white"
       : "Colour";
 
-  getElement("coverageRow").classList.toggle(
-    "hidden",
-    printMode !== "colour"
-  );
-
   getElement("colourNote").classList.toggle(
     "hidden",
     printMode !== "colour"
   );
 
-  calculateTotal();
-}
-
-function calculateTotal() {
-  let priceForOneCopy = 0;
-
-  if (uploadedFileInformation) {
-    const numberOfPages =
-      uploadedFileInformation.pages;
-
-    const blackAndWhiteCharge =
-      numberOfPages * 2;
-
-    if (printMode === "bw") {
-      priceForOneCopy =
-        blackAndWhiteCharge;
-    } else {
-      const colourCharge =
-        numberOfPages *
-        uploadedFileInformation.colourCoverage *
-        35;
-
-      priceForOneCopy =
-        blackAndWhiteCharge +
-        colourCharge;
-    }
-  }
-
-  const finalPrice = Math.ceil(
-    priceForOneCopy * numberOfCopies
-  );
-
-  getElement("total").textContent =
-    finalPrice.toString();
-
-  getElement("summaryCopies").textContent =
-    numberOfCopies;
+  renderSelectedFiles();
 }
 
 function calculateColourCoverage(canvas) {
@@ -105,7 +93,9 @@ function calculateColourCoverage(canvas) {
     const red = pixels[pixel];
     const green = pixels[pixel + 1];
     const blue = pixels[pixel + 2];
-    const transparency = pixels[pixel + 3] / 255;
+
+    const transparency =
+      pixels[pixel + 3] / 255;
 
     const highestColour = Math.max(
       red,
@@ -133,13 +123,17 @@ function calculateColourCoverage(canvas) {
 
   return Math.max(
     0,
-    Math.min(1, totalColour / pixelCount)
+    Math.min(
+      1,
+      totalColour / pixelCount
+    )
   );
 }
 
 function loadImageFile(file) {
   return new Promise((resolve, reject) => {
     const image = new Image();
+
     const temporaryURL =
       URL.createObjectURL(file);
 
@@ -160,12 +154,16 @@ function loadImageFile(file) {
 
       canvas.width = Math.max(
         1,
-        Math.round(image.width * scale)
+        Math.round(
+          image.width * scale
+        )
       );
 
       canvas.height = Math.max(
         1,
-        Math.round(image.height * scale)
+        Math.round(
+          image.height * scale
+        )
       );
 
       const context =
@@ -203,7 +201,9 @@ function loadImageFile(file) {
       URL.revokeObjectURL(temporaryURL);
 
       reject(
-        new Error("Image could not be read.")
+        new Error(
+          "The image could not be read."
+        )
       );
     };
 
@@ -237,7 +237,9 @@ async function loadPdfFile(file) {
     pageNumber++
   ) {
     const page =
-      await pdfDocument.getPage(pageNumber);
+      await pdfDocument.getPage(
+        pageNumber
+      );
 
     const viewport =
       page.getViewport({
@@ -289,11 +291,7 @@ async function loadPdfFile(file) {
   };
 }
 
-async function processUploadedFile(file) {
-  if (!file) {
-    return;
-  }
-
+async function analyseFile(file) {
   const fileName =
     file.name.toLowerCase();
 
@@ -308,81 +306,352 @@ async function processUploadedFile(file) {
     fileName.endsWith(".png");
 
   if (!isPdf && !isImage) {
-    showError(
-      "Please upload a PDF, JPG or PNG file."
+    throw new Error(
+      "Please upload PDF, JPG or PNG files."
     );
+  }
 
+  if (isPdf) {
+    return await loadPdfFile(file);
+  }
+
+  return await loadImageFile(file);
+}
+
+async function processUploadedFiles(fileList) {
+  const files = Array.from(fileList);
+
+  if (files.length === 0) {
     return;
   }
 
   showError("");
 
-  uploadedFileInformation = null;
+  showUploadLoading(files.length);
 
-  getElement("payButton").disabled = true;
+  let successfulFiles = 0;
 
-  getElement("dropzone").classList.remove(
-    "has-file"
-  );
+  for (const file of files) {
+    try {
+      const information =
+        await analyseFile(file);
 
+      selectedFiles.push({
+        id: nextFileId++,
+        name: file.name,
+        pages: information.pages,
+        colourCoverage:
+          information.colourCoverage,
+        size: "A4",
+        paper: "normal",
+        copies: 1
+      });
+
+      successfulFiles++;
+    } catch (error) {
+      console.error(error);
+
+      showError(
+        `${file.name} could not be read.`
+      );
+    }
+  }
+
+  resetDropzone();
+
+  if (successfulFiles > 0) {
+    renderSelectedFiles();
+  }
+}
+
+function showUploadLoading(fileCount) {
   getElement("dropzone").innerHTML = `
     <span class="spinner"></span>
-    <b>Reading your file…</b>
+
+    <b>
+      Reading ${fileCount}
+      ${fileCount === 1 ? "file" : "files"}…
+    </b>
+
     <small>
       Calculating pages and colour use
     </small>
   `;
+}
 
-  try {
-    if (isPdf) {
-      uploadedFileInformation =
-        await loadPdfFile(file);
-    } else {
-      uploadedFileInformation =
-        await loadImageFile(file);
-    }
+function resetDropzone() {
+  getElement("dropzone").innerHTML = `
+    <span class="upload-icon">+</span>
 
-    getElement("dropzone").classList.add(
-      "has-file"
-    );
+    <b>Add more files</b>
 
-    getElement("dropzone").innerHTML = `
-      <span class="file-check">✓</span>
-      <b>${makeTextSafe(file.name)}</b>
-      <small>
-        ${uploadedFileInformation.pages}
-        ${
-          uploadedFileInformation.pages === 1
-            ? "page"
-            : "pages"
-        }
-        detected · Click to replace
-      </small>
-    `;
+    <small>
+      Select PDF, JPG or PNG files
+    </small>
+  `;
+}
 
-    getElement("summaryPages").textContent =
-      uploadedFileInformation.pages;
+function getFilePrice(file) {
+  const selectedPaper =
+    file.size === "A4"
+      ? file.paper
+      : "normal";
 
-    getElement(
-      "summaryCoverage"
-    ).textContent =
-      Math.round(
-        uploadedFileInformation
-          .colourCoverage * 100
-      ) + "%";
+  const selectedPrice =
+    prices[file.size][selectedPaper];
 
-    getElement("payButton").disabled = false;
+  let pricePerPage =
+    selectedPrice.blackAndWhite;
 
-    calculateTotal();
-  } catch (error) {
-    console.error(error);
+  if (printMode === "colour") {
+    const colourUsageCharge =
+      file.colourCoverage *
+      selectedPrice.fullColour;
 
-    showError(
-      "The file could not be read. Please try another PDF, JPG or PNG."
-    );
-
-    resetUploadArea();
+    pricePerPage +=
+      colourUsageCharge;
   }
+
+  const unroundedPrice =
+    file.pages *
+    file.copies *
+    pricePerPage;
+
+  return Math.ceil(unroundedPrice);
+}
+
+function getOrderTotal() {
+  return selectedFiles.reduce(
+    (total, file) =>
+      total + getFilePrice(file),
+    0
+  );
+}
+
+function getTotalPrintedPages() {
+  return selectedFiles.reduce(
+    (total, file) =>
+      total +
+      file.pages * file.copies,
+    0
+  );
+}
+
+function renderSelectedFiles() {
+  const selectedFilesSection =
+    getElement("selectedFilesSection");
+
+  const filesList =
+    getElement("filesList");
+
+  if (selectedFiles.length === 0) {
+    selectedFilesSection.classList.add(
+      "hidden"
+    );
+
+    filesList.innerHTML = "";
+
+    updateOrderSummary();
+
+    return;
+  }
+
+  selectedFilesSection.classList.remove(
+    "hidden"
+  );
+
+  filesList.innerHTML =
+    selectedFiles
+      .map((file) => {
+        const paperChoice =
+          file.size === "A4"
+            ? `
+              <div class="file-setting">
+                <label>
+                  Paper type
+                </label>
+
+                <select
+                  data-action="paper"
+                  data-file-id="${file.id}"
+                >
+                  <option
+                    value="normal"
+                    ${
+                      file.paper === "normal"
+                        ? "selected"
+                        : ""
+                    }
+                  >
+                    Normal paper
+                  </option>
+
+                  <option
+                    value="sticker"
+                    ${
+                      file.paper === "sticker"
+                        ? "selected"
+                        : ""
+                    }
+                  >
+                    Sticker paper
+                  </option>
+                </select>
+              </div>
+            `
+            : "";
+
+        const colourDetails =
+          printMode === "colour"
+            ? `
+              <span>
+                ${Math.round(
+                  file.colourCoverage * 100
+                )}% colour
+              </span>
+            `
+            : "";
+
+        return `
+          <article
+            class="file-card"
+            data-file-id="${file.id}"
+          >
+            <div class="file-card-header">
+              <div class="file-information">
+                <span class="file-symbol">
+                  ✓
+                </span>
+
+                <div>
+                  <b>
+                    ${makeTextSafe(file.name)}
+                  </b>
+
+                  <small>
+                    ${file.pages}
+                    ${
+                      file.pages === 1
+                        ? "page"
+                        : "pages"
+                    }
+
+                    ${colourDetails}
+                  </small>
+                </div>
+              </div>
+
+              <button
+                class="remove-file"
+                type="button"
+                data-action="remove"
+                data-file-id="${file.id}"
+              >
+                Remove
+              </button>
+            </div>
+
+            <div class="file-settings">
+              <div class="file-setting">
+                <label>
+                  Paper size
+                </label>
+
+                <select
+                  data-action="size"
+                  data-file-id="${file.id}"
+                >
+                  <option
+                    value="A5"
+                    ${
+                      file.size === "A5"
+                        ? "selected"
+                        : ""
+                    }
+                  >
+                    A5
+                  </option>
+
+                  <option
+                    value="A4"
+                    ${
+                      file.size === "A4"
+                        ? "selected"
+                        : ""
+                    }
+                  >
+                    A4
+                  </option>
+
+                  <option
+                    value="A3"
+                    ${
+                      file.size === "A3"
+                        ? "selected"
+                        : ""
+                    }
+                  >
+                    A3
+                  </option>
+                </select>
+              </div>
+
+              ${paperChoice}
+
+              <div class="file-setting">
+                <label>
+                  Copies
+                </label>
+
+                <div class="file-counter">
+                  <button
+                    type="button"
+                    data-action="decrease"
+                    data-file-id="${file.id}"
+                  >
+                    −
+                  </button>
+
+                  <span>${file.copies}</span>
+
+                  <button
+                    type="button"
+                    data-action="increase"
+                    data-file-id="${file.id}"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="file-price">
+              <span>File total</span>
+
+              <b>
+                MVR ${getFilePrice(file)}
+              </b>
+            </div>
+          </article>
+        `;
+      })
+      .join("");
+
+  updateOrderSummary();
+}
+
+function updateOrderSummary() {
+  getElement("summaryFiles").textContent =
+    selectedFiles.length;
+
+  getElement("summaryPages").textContent =
+    getTotalPrintedPages();
+
+  getElement("total").textContent =
+    getOrderTotal();
+
+  getElement("payButton").disabled =
+    selectedFiles.length === 0;
 }
 
 function makeTextSafe(text) {
@@ -406,31 +675,6 @@ function showError(message) {
   );
 }
 
-function resetUploadArea() {
-  uploadedFileInformation = null;
-
-  getElement("summaryPages").textContent =
-    "—";
-
-  getElement(
-    "summaryCoverage"
-  ).textContent = "—";
-
-  getElement("payButton").disabled = true;
-
-  getElement("dropzone").classList.remove(
-    "has-file"
-  );
-
-  getElement("dropzone").innerHTML = `
-    <span class="upload-icon">↑</span>
-    <b>Choose a file</b>
-    <small>or drag and drop it here</small>
-  `;
-
-  calculateTotal();
-}
-
 getElement("bwMode").addEventListener(
   "click",
   function () {
@@ -445,75 +689,138 @@ getElement("colourMode").addEventListener(
   }
 );
 
-const dropzone = getElement("dropzone");
-
-if (
-  dropzone.tagName.toLowerCase() !== "label"
-) {
-  dropzone.addEventListener(
-    "click",
-    function () {
-      getElement("fileInput").click();
-    }
-  );
-}
-
 getElement("fileInput").addEventListener(
   "change",
   function (event) {
-    processUploadedFile(
-      event.target.files[0]
+    processUploadedFiles(
+      event.target.files
     );
 
     event.target.value = "";
   }
 );
 
-dropzone.addEventListener(
+getElement("dropzone").addEventListener(
   "dragover",
   function (event) {
     event.preventDefault();
   }
 );
 
-dropzone.addEventListener(
+getElement("dropzone").addEventListener(
   "drop",
   function (event) {
     event.preventDefault();
 
-    processUploadedFile(
-      event.dataTransfer.files[0]
+    processUploadedFiles(
+      event.dataTransfer.files
     );
   }
 );
 
-getElement("minus").addEventListener(
-  "click",
-  function () {
-    numberOfCopies = Math.max(
-      1,
-      numberOfCopies - 1
+getElement("filesList").addEventListener(
+  "change",
+  function (event) {
+    const action =
+      event.target.dataset.action;
+
+    const fileId = Number(
+      event.target.dataset.fileId
     );
 
-    getElement("copies").textContent =
-      numberOfCopies;
+    const file = selectedFiles.find(
+      (item) => item.id === fileId
+    );
 
-    calculateTotal();
+    if (!file) {
+      return;
+    }
+
+    if (action === "size") {
+      file.size = event.target.value;
+
+      if (file.size !== "A4") {
+        file.paper = "normal";
+      }
+    }
+
+    if (action === "paper") {
+      file.paper = event.target.value;
+    }
+
+    renderSelectedFiles();
   }
 );
 
-getElement("plus").addEventListener(
+getElement("filesList").addEventListener(
   "click",
-  function () {
-    numberOfCopies = Math.min(
-      99,
-      numberOfCopies + 1
+  function (event) {
+    const button = event.target.closest(
+      "button[data-action]"
     );
 
-    getElement("copies").textContent =
-      numberOfCopies;
+    if (!button) {
+      return;
+    }
 
-    calculateTotal();
+    const action =
+      button.dataset.action;
+
+    const fileId = Number(
+      button.dataset.fileId
+    );
+
+    const file = selectedFiles.find(
+      (item) => item.id === fileId
+    );
+
+    if (action === "remove") {
+      selectedFiles =
+        selectedFiles.filter(
+          (item) => item.id !== fileId
+        );
+    }
+
+    if (
+      action === "decrease" &&
+      file
+    ) {
+      file.copies = Math.max(
+        1,
+        file.copies - 1
+      );
+    }
+
+    if (
+      action === "increase" &&
+      file
+    ) {
+      file.copies = Math.min(
+        99,
+        file.copies + 1
+      );
+    }
+
+    renderSelectedFiles();
+  }
+);
+
+getElement("clearFiles").addEventListener(
+  "click",
+  function () {
+    selectedFiles = [];
+
+    renderSelectedFiles();
+
+    getElement("dropzone").innerHTML = `
+      <span class="upload-icon">↑</span>
+
+      <b>Choose your files</b>
+
+      <small>
+        Select one or several files
+      </small>
+    `;
   }
 );
 
