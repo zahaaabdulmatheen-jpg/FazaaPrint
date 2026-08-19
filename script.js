@@ -379,68 +379,41 @@ function resetUploadArea() {
   `;
 
   calculateTotal();
+function calculateTotal() {
+  let priceForOneCopy = 0;
+
+  if (uploadedFileInformation) {
+    if (printMode === "bw") {
+      priceForOneCopy =
+        uploadedFileInformation.pages * 2;
+    } else {
+      const basicPrintingCharge = 2;
+
+      const maximumExtraColourCharge =
+        35 - basicPrintingCharge;
+
+      const pricePerPage =
+        basicPrintingCharge +
+        uploadedFileInformation.coverage *
+        maximumExtraColourCharge;
+
+      priceForOneCopy =
+        uploadedFileInformation.pages *
+        pricePerPage;
+    }
+  }
+
+  const finalPrice =
+    Math.round(
+      priceForOneCopy * numberOfCopies
+    );
+
+  getElement("total").textContent =
+    finalPrice.toString();
+
+  getElement("summaryCopies").textContent =
+    numberOfCopies;
 }
-
-getElement("bwMode").addEventListener(
-  "click",
-  function () {
-    selectPrintMode("bw");
-  }
-);
-
-getElement("colourMode").addEventListener(
-  "click",
-  function () {
-    selectPrintMode("colour");
-  }
-);
-
-getElement("dropzone").addEventListener(
-  "click",
-  function () {
-    getElement("fileInput").click();
-  }
-);
-
-getElement("fileInput").addEventListener(
-  "change",
-  function (event) {
-    processUploadedFile(
-      event.target.files[0]
-    );
-
-    event.target.value = "";
-  }
-);
-
-getElement("dropzone").addEventListener(
-  "dragover",
-  function (event) {
-    event.preventDefault();
-  }
-);
-
-getElement("dropzone").addEventListener(
-  "drop",
-  function (event) {
-    event.preventDefault();
-
-    processUploadedFile(
-      event.dataTransfer.files[0]
-    );
-  }
-);
-
-getElement("minus").addEventListener(
-  "click",
-  function () {
-    numberOfCopies = Math.max(
-      1,
-      numberOfCopies - 1
-    );
-
-    getElement("copies").textContent =
-      numberOfCopies;
 
     calculateTotal();
   }
