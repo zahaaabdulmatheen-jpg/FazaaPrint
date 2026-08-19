@@ -652,6 +652,9 @@ function updateOrderSummary() {
 
   getElement("payButton").disabled =
     selectedFiles.length === 0;
+  
+  getElement("invoiceButton").disabled =
+  selectedFiles.length === 0;
 }
 
 function makeTextSafe(text) {
